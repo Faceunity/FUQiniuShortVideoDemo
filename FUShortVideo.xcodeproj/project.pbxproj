@@ -728,7 +728,7 @@
 					"$(PROJECT_DIR)/FUShortVideo/Librarys",
 					"$(PROJECT_DIR)/FUShortVideo/Faceunity/FaceUnity-SDK-iOS",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = xiangxin.FUShortVideo;
+				PRODUCT_BUNDLE_IDENTIFIER = xiangxin.FUQiniuShortVideoDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -754,7 +754,7 @@
 					"$(PROJECT_DIR)/FUShortVideo/Librarys",
 					"$(PROJECT_DIR)/FUShortVideo/Faceunity/FaceUnity-SDK-iOS",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = xiangxin.FUShortVideo;
+				PRODUCT_BUNDLE_IDENTIFIER = xiangxin.FUQiniuShortVideoDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
