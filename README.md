@@ -1,4 +1,4 @@
-# FUShortVideo
+# FUQiniuShortVideoDemo
 
 ## 库文件
   - funama.h 函数调用接口头文件
