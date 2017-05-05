@@ -81,7 +81,7 @@
     self.shortVideoSession.previewView.frame = CGRectMake(0, 0, KWIDTH, KHEIGHT);
     [self.view addSubview:self.shortVideoSession.previewView];
     self.shortVideoSession.delegate = self;
-    self.shortVideoSession.maxDuration = 60.0f; // 设置最长录制时长
+    self.shortVideoSession.maxDuration = MaxDuration; // 设置最长录制时长
 }
 
 #pragma mark ---- UI 
@@ -217,7 +217,6 @@
 // 删除上一段视频
 - (void)deleteLastShortVideo {
     [self.shortVideoSession deleteLastFile];
-    [self.progressBar deleteLastProgress];
 }
 
 // 结束录像，进入视频编辑页面
@@ -293,9 +292,6 @@
 -(void)shortVideoSession:(PLShortVideoSession *)shortVideoSession didRecordingToOutputFileAtURL:(NSURL * _Nonnull)fileURL fileDuration:(CGFloat)fileDuration totalDuration:(CGFloat)totalDuration {
     
     self.recordTimeLabel.text = [NSString stringWithFormat:@"%.2fs", totalDuration];
-    if (totalDuration >= MaxDuration) {
-        [self stopRecording];
-    }
 }
 
 /**
@@ -308,22 +304,28 @@
     
     self.deleteBtn.hidden = NO ;
     self.finishBtn.hidden = NO ;
+    self.recordBtn.selected = NO;
+    [self.progressBar stopProgress];
 }
 
-// 到达最大录制时长
+// 在达到指定的视频录制时间 maxDuration 后，如果再调用 [PLShortVideoSession startRecording]，直接执行该回调
 -(void)shortVideoSession:(PLShortVideoSession *)shortVideoSession didFinishRecordingMaxDuration:(CGFloat)maxDuration {
     // 结束录制
-    [self finishShortVideo ];
+    [self stopRecording];
+    
+    self.deleteBtn.hidden = NO ;
+    self.finishBtn.hidden = NO ;
+    self.recordBtn.selected = NO;
 }
 
 // 删除了上一段视频
 -(void)shortVideoSession:(PLShortVideoSession *)shortVideoSession didDeleteFileAtURL:(NSURL * _Nonnull)fileURL fileDuration:(CGFloat)fileDuration totalDuration:(CGFloat)totalDuration error:(NSError * _Nullable)error {
-    
+    NSLog(@"------ %f",totalDuration);
     if (totalDuration <= 0.0000001f) {
         self.deleteBtn.hidden = YES;
         self.finishBtn.hidden = YES;
     }
-    
+    [self.progressBar setProgressWithSec:totalDuration];
     self.recordTimeLabel.text = [NSString stringWithFormat:@"%.2fs", totalDuration];
 }
 

@@ -14,7 +14,6 @@
 {
     CGFloat _animationDuration ;
     CGFloat perWidth ;// 每走一格的长度
-    NSMutableArray *widthArray ; // 记录次视频段的长度
 }
 @property (nonatomic, strong)UIView *progView ;
 @property (nonatomic, strong)NSTimer *animationTimer ;
@@ -27,8 +26,6 @@
     if (self) {
         _animationDuration = maxDuration ;
         perWidth = frame.size.width / maxDuration * perSec ;
-        widthArray = [NSMutableArray arrayWithCapacity:1];
-        [widthArray addObject:@0];
         
         [self addSubs];
     }
@@ -60,20 +57,18 @@
 
 // 停止
 - (void)stopProgress {
-    [widthArray addObject:@(_progView.frame.size.width)];
+    //最后
     [self.animationTimer invalidate];
     self.animationTimer = nil ;
 }
 // 删除最后一段
-- (void)deleteLastProgress {
+-(void)setProgressWithSec:(CGFloat)sec {
     
-    [widthArray removeLastObject];
-    
-    if (widthArray.count > 0) {
-        CGFloat width = [widthArray.lastObject floatValue];
-        
-        self.progView.frame = CGRectMake(self.progView.frame.origin.x, self.progView.frame.origin.y, width, self.progView.frame.size.height);
+    if (sec > _animationDuration) {
+        sec = _animationDuration ;
     }
+    CGFloat width = self.frame.size.width * sec / _animationDuration ;
+    _progView.frame = CGRectMake(0, 0, width , _progView.frame.size.height);
 }
 
 -(void)dealloc {

@@ -16,6 +16,6 @@
 - (void)startProgress;
 // 停止
 - (void)stopProgress;
-// 删除最后一段
-- (void)deleteLastProgress;
+// 删除
+- (void)setProgressWithSec:(CGFloat)sec ;
 @end
