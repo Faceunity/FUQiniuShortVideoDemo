@@ -39,6 +39,8 @@
 @property (nonatomic, strong)FUAPIDemoBar *demoBar;//工具条
 @end
 
+static EAGLContext *mcontext;
+
 @implementation ViewController
 
 - (void)viewDidLoad {
@@ -49,6 +51,8 @@
     
     // 添加 UI
     [self addViews];
+    
+//    [self initFaceunity];
     
     needLoadItem = YES ;
 }
@@ -100,7 +104,7 @@
         make.bottom.mas_equalTo(self.view);
         make.left.mas_equalTo(self.view);
         make.right.mas_equalTo(self.view);
-        make.height.mas_equalTo(128);
+        make.height.mas_equalTo(208);
     }];
 }
 
@@ -122,7 +126,7 @@
 -(UIButton *)recordBtn {
     if (!_recordBtn) {
         _recordBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        _recordBtn.frame = CGRectMake((KWIDTH - 200)/2.0, KHEIGHT - 56 - 128, 200, 44);
+        _recordBtn.frame = CGRectMake((KWIDTH - 200)/2.0, KHEIGHT - 56 - 208, 200, 44);
         _recordBtn.backgroundColor = [UIColor clearColor];
         _recordBtn.layer.masksToBounds = YES ;
         _recordBtn.layer.cornerRadius = 22 ;
@@ -139,7 +143,7 @@
 -(UIButton *)deleteBtn {
     if (!_deleteBtn) {
         _deleteBtn = [UIButton buttonWithType: UIButtonTypeCustom];
-        _deleteBtn .frame = CGRectMake(50, KHEIGHT - 250, 60, 60);
+        _deleteBtn .frame = CGRectMake(50, KHEIGHT - 330, 60, 60);
         _deleteBtn.backgroundColor = [UIColor lightGrayColor];
         _deleteBtn.layer.masksToBounds = YES ;
         _deleteBtn.layer.cornerRadius = 30 ;
@@ -154,7 +158,7 @@
 -(UIButton *)finishBtn {
     if (!_finishBtn) {
         _finishBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        _finishBtn.frame = CGRectMake(KWIDTH - 110, KHEIGHT - 250, 60, 60);
+        _finishBtn.frame = CGRectMake(KWIDTH - 110, KHEIGHT - 330, 60, 60);
         _finishBtn.backgroundColor = [UIColor lightGrayColor];
         _finishBtn.layer.masksToBounds = YES ;
         _finishBtn.layer.cornerRadius = 30 ;
@@ -181,14 +185,18 @@
 -(void)setDemoBar:(FUAPIDemoBar *)demoBar {
     
     _demoBar = demoBar;
-    _demoBar.itemsDataSource = @[@"noitem", @"Deer", @"tiara", @"item0208", @"YellowEar", @"PrincessCrown", @"Mood", @"HappyRabbi", @"BeagleDog", @"item0501", @"item0210",  @"item0204", @"hartshorn", @"ColorCrown"];
+    _demoBar.itemsDataSource = @[@"noitem", @"tiara", @"item0208", @"YellowEar", @"PrincessCrown", @"Mood" , @"Deer" , @"BeagleDog", @"item0501", @"item0210",  @"HappyRabbi", @"item0204", @"hartshorn", @"ColorCrown"];
     _demoBar.selectedItem = _demoBar.itemsDataSource[1];
+    
     _demoBar.filtersDataSource = @[@"nature", @"delta", @"electric", @"slowlived", @"tokyo", @"warm"];
     _demoBar.selectedFilter = _demoBar.filtersDataSource[0];
     _demoBar.selectedBlur = 6;
-    _demoBar.beautyLevel = 0.5;
+    _demoBar.beautyLevel = 0.2;
     _demoBar.thinningLevel = 1.0;
-    _demoBar.enlargingLevel = 1.0;
+    _demoBar.enlargingLevel = 0.5;
+    _demoBar.faceShapeLevel = 0.5;
+    _demoBar.faceShape = 3;
+    _demoBar.redLevel = 0.5;
     _demoBar.delegate = self;
 }
 
@@ -241,7 +249,8 @@
  */
 - (CVPixelBufferRef)shortVideoSession:(PLShortVideoSession *)session cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
     
-    
+    //如果当前环境中已存在EAGLContext，此步骤可省略，但必须要调用[EAGLContext setCurrentContext:curContext]函数。
+    [self setUpContext];
     // Faceunity初始化：启动后只需要初始化一次Faceunity即可，切勿多次初始化。
     // g_auth_package 为密钥数组
 #warning 此步骤不可放在异步线程中执行
@@ -265,19 +274,20 @@
         [self loadFilter] ;
     }
     
+    //设置美颜效果（滤镜、磨皮、美白、瘦脸、大眼....）
     fuItemSetParamd(items[1], "cheek_thinning", self.demoBar.thinningLevel); //瘦脸
     fuItemSetParamd(items[1], "eye_enlarging", self.demoBar.enlargingLevel); //大眼
     fuItemSetParamd(items[1], "color_level", self.demoBar.beautyLevel); //美白
     fuItemSetParams(items[1], "filter_name", (char *)[_demoBar.selectedFilter UTF8String]); //滤镜
     fuItemSetParamd(items[1], "blur_level", self.demoBar.selectedBlur); //磨皮
+    fuItemSetParamd(items[1], "face_shape", self.demoBar.faceShape); //瘦脸类型
+    fuItemSetParamd(items[1], "face_shape_level", self.demoBar.faceShapeLevel); //瘦脸等级
+    fuItemSetParamd(items[1], "red_level", self.demoBar.redLevel); //红润
     
-    //--------------------------------
-    // Faceunity核心接口，将道具效果作用到图像中，执行完此函数pixelBuffer即包含贴纸效果
-    // 其中frameID用来记录当前处理了多少帧图像，该参数与道具中的动画播放有关。itemCount为传入接口的道具数量。
-    // 此函数会修改 pixelBuffer 数据，执行完成之后 pixelBuffer 即包含贴纸效果
+    //Faceunity核心接口，将道具及美颜效果作用到图像中，执行完此函数pixelBuffer即包含美颜及贴纸效果
 #warning 此步骤不可放在异步线程中执行
-    [[FURenderer shareRenderer] renderPixelBuffer:pixelBuffer withFrameId:frameID  items:items itemCount:3];
-    frameID += 1 ;
+    [[FURenderer shareRenderer] renderPixelBuffer:pixelBuffer withFrameId:frameID items:items itemCount:3 flipx:YES];//flipx 参数设为YES可以使道具做水平方向的镜像翻转
+    frameID += 1;
     
     return pixelBuffer;
 }
@@ -391,6 +401,17 @@
 - (void)topBarDidChangeCamera:(UIButton *)sender {
     
     [_shortVideoSession toggleCamera];
+}
+
+- (void)setUpContext
+{
+    if(!mcontext){
+        mcontext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    if(!mcontext || ![EAGLContext setCurrentContext:mcontext]){
+        NSLog(@"faceunity: failed to create / set a GLES2 context");
+    }
+    
 }
 
 #pragma mark --- delegate
