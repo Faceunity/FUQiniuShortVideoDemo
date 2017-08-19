@@ -318,6 +318,7 @@
 		C3F91FEF1F1CBDA000698322 /* filter in Resources */ = {isa = PBXBuildFile; fileRef = C3F91FEE1F1CBDA000698322 /* filter */; };
 		C3F91FF11F1CBDAB00698322 /* stickers in Resources */ = {isa = PBXBuildFile; fileRef = C3F91FF01F1CBDAB00698322 /* stickers */; };
 		C3F91FF31F1CBDBA00698322 /* models in Resources */ = {isa = PBXBuildFile; fileRef = C3F91FF21F1CBDBA00698322 /* models */; };
+		CDA5F8DE1F48155B006BB688 /* FUManager.m in Sources */ = {isa = PBXBuildFile; fileRef = CDA5F8DD1F48155B006BB688 /* FUManager.m */; };
 		E92569951F42A7B600D3C417 /* libnama.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E92569861F42A7B600D3C417 /* libnama.a */; };
 		E92569961F42A7B600D3C417 /* release_note.txt in Resources */ = {isa = PBXBuildFile; fileRef = E92569871F42A7B600D3C417 /* release_note.txt */; };
 		E92569971F42A7B600D3C417 /* face_beautification.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E92569891F42A7B600D3C417 /* face_beautification.bundle */; };
@@ -329,7 +330,6 @@
 		E925699D1F42A7B600D3C417 /* yazui.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E92569901F42A7B600D3C417 /* yazui.bundle */; };
 		E925699E1F42A7B600D3C417 /* yuguan.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E92569911F42A7B600D3C417 /* yuguan.bundle */; };
 		E925699F1F42A7B600D3C417 /* FUAPIDemoBar.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E92569921F42A7B600D3C417 /* FUAPIDemoBar.framework */; };
-		E92569A01F42A7B700D3C417 /* FaceUnityManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E92569941F42A7B600D3C417 /* FaceUnityManager.m */; };
 		E92569A11F42A86C00D3C417 /* FUAPIDemoBar.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E92569921F42A7B600D3C417 /* FUAPIDemoBar.framework */; };
 		E92569A21F42A86C00D3C417 /* FUAPIDemoBar.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E92569921F42A7B600D3C417 /* FUAPIDemoBar.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F360B89E036039A66815D9FE /* libPods-PLShortVideoKitDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 57AEAFA0012D959C08AB23AE /* libPods-PLShortVideoKitDemo.a */; };
@@ -939,6 +939,8 @@
 		C3F91FEE1F1CBDA000698322 /* filter */ = {isa = PBXFileReference; lastKnownFileType = folder; path = filter; sourceTree = "<group>"; };
 		C3F91FF01F1CBDAB00698322 /* stickers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = stickers; sourceTree = "<group>"; };
 		C3F91FF21F1CBDBA00698322 /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = models; sourceTree = "<group>"; };
+		CDA5F8DC1F48155B006BB688 /* FUManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FUManager.h; sourceTree = "<group>"; };
+		CDA5F8DD1F48155B006BB688 /* FUManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FUManager.m; sourceTree = "<group>"; };
 		E92569811F42A7B600D3C417 /* authpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = authpack.h; sourceTree = "<group>"; };
 		E92569841F42A7B600D3C417 /* funama.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funama.h; sourceTree = "<group>"; };
 		E92569851F42A7B600D3C417 /* FURenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FURenderer.h; sourceTree = "<group>"; };
@@ -953,8 +955,6 @@
 		E92569901F42A7B600D3C417 /* yazui.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = yazui.bundle; sourceTree = "<group>"; };
 		E92569911F42A7B600D3C417 /* yuguan.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = yuguan.bundle; sourceTree = "<group>"; };
 		E92569921F42A7B600D3C417 /* FUAPIDemoBar.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FUAPIDemoBar.framework; sourceTree = "<group>"; };
-		E92569931F42A7B600D3C417 /* FaceUnityManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FaceUnityManager.h; sourceTree = "<group>"; };
-		E92569941F42A7B600D3C417 /* FaceUnityManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FaceUnityManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1833,8 +1833,8 @@
 			children = (
 				E92569801F42A7B600D3C417 /* Faceunity */,
 				E92569921F42A7B600D3C417 /* FUAPIDemoBar.framework */,
-				E92569931F42A7B600D3C417 /* FaceUnityManager.h */,
-				E92569941F42A7B600D3C417 /* FaceUnityManager.m */,
+				CDA5F8DC1F48155B006BB688 /* FUManager.h */,
+				CDA5F8DD1F48155B006BB688 /* FUManager.m */,
 			);
 			path = FaceUnity;
 			sourceTree = "<group>";
@@ -2276,6 +2276,7 @@
 				C3F91F661F1CBD4900698322 /* row_any.cc in Sources */,
 				C3F91F8E1F1CBD4900698322 /* UIImageView+WebCache.m in Sources */,
 				C3F91F591F1CBD4900698322 /* cpu_id.cc in Sources */,
+				CDA5F8DE1F48155B006BB688 /* FUManager.m in Sources */,
 				C3F91F491F1CBD4900698322 /* KWSDK.m in Sources */,
 				C3F91F6F1F1CBD4900698322 /* scale_any.cc in Sources */,
 				C3F91F581F1CBD4900698322 /* convert_to_i420.cc in Sources */,
@@ -2289,7 +2290,6 @@
 				C3F91F7F1F1CBD4900698322 /* Reachability.m in Sources */,
 				C3F91F791F1CBD4900698322 /* KWSticker.m in Sources */,
 				C3F91F931F1CBD4900698322 /* zip.c in Sources */,
-				E92569A01F42A7B700D3C417 /* FaceUnityManager.m in Sources */,
 				C3F91F6A1F1CBD4900698322 /* row_msa.cc in Sources */,
 				C3F91F8D1F1CBD4900698322 /* UIImageView+HighlightedWebCache.m in Sources */,
 				C3F91F921F1CBD4900698322 /* unzip.c in Sources */,

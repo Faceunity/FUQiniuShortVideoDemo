@@ -21,7 +21,7 @@
 #import "KWSmiliesStickerRenderer.h"
 
 #import <FUAPIDemoBar/FUAPIDemoBar.h>
-#import "FaceUnityManager.h"
+#import "FUManager.h"
 
 #define PLS_CLOSE_CONTROLLER_ALERTVIEW_TAG 10001
 #define PLS_SCREEN_WIDTH CGRectGetWidth([UIScreen mainScreen].bounds)
@@ -78,9 +78,7 @@ FUAPIDemoBarDelegate
 @end
 
 @implementation RecordViewController
-{
-    int frameID ;
-}
+
 - (instancetype)init {
     self = [super init];
     if (self) {
@@ -140,20 +138,7 @@ FUAPIDemoBarDelegate
     
     [self.view addSubview:self.fuBar];
     
-    frameID = 0 ;
-    
-    // 加载第一个道具
-    [[FaceUnityManager shareManager] loadItem:self.fuBar.itemsDataSource[1]];
-    // 加载美颜效果
-    [[FaceUnityManager shareManager] loadFilter];
-    // 美颜效果设置初始参数
-    [FaceUnityManager shareManager].selectedBlur = self.fuBar.selectedBlur;
-    [FaceUnityManager shareManager].redLevel = self.fuBar.redLevel ;
-    [FaceUnityManager shareManager].faceShapeLevel = self.fuBar.faceShapeLevel ;
-    [FaceUnityManager shareManager].faceShape = self.fuBar.faceShape ;
-    [FaceUnityManager shareManager].beautyLevel = self.fuBar.beautyLevel ;
-    [FaceUnityManager shareManager].thinningLevel = self.fuBar.thinningLevel ;
-    [FaceUnityManager shareManager].enlargingLevel = self.fuBar.enlargingLevel ;
+    [[FUManager shareManager] setUpFaceunity];
 }
 
 /**
@@ -165,17 +150,20 @@ FUAPIDemoBarDelegate
 -(FUAPIDemoBar *)fuBar {
     if (!_fuBar) {
         _fuBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height, self.view.frame.size.width, 208)];
-        _fuBar.itemsDataSource = @[@"noitem", @"EatRabbi",  @"lixiaolong", @"mask_matianyu",   @"yazui", @"yuguan", @"Mood" ];
-        _fuBar.selectedItem = _fuBar.itemsDataSource[1];
-        _fuBar.filtersDataSource = @[@"nature", @"delta", @"electric", @"slowlived", @"tokyo", @"warm"];
-        _fuBar.selectedFilter = _fuBar.filtersDataSource[1];
-        _fuBar.selectedBlur = 6;
-        _fuBar.beautyLevel = 0.2;
-        _fuBar.thinningLevel = 1.0;
-        _fuBar.enlargingLevel = 0.5;
-        _fuBar.faceShapeLevel = 0.5;
-        _fuBar.faceShape = 3;
-        _fuBar.redLevel = 0.5;
+        
+        _fuBar.itemsDataSource =  [FUManager shareManager].itemsDataSource;
+        _fuBar.filtersDataSource = [FUManager shareManager].filtersDataSource;
+        
+        _fuBar.selectedItem = [FUManager shareManager].selectedItem;
+        _fuBar.selectedFilter = [FUManager shareManager].selectedFilter;
+        _fuBar.selectedBlur = [FUManager shareManager].selectedBlur;
+        _fuBar.beautyLevel = [FUManager shareManager].beautyLevel;
+        _fuBar.thinningLevel = [FUManager shareManager].thinningLevel;
+        _fuBar.enlargingLevel = [FUManager shareManager].enlargingLevel;
+        _fuBar.faceShapeLevel = [FUManager shareManager].faceShapeLevel;
+        _fuBar.faceShape = [FUManager shareManager].faceShape;
+        _fuBar.redLevel = [FUManager shareManager].redLevel;
+        
         _fuBar.delegate = self;
     }
     return _fuBar ;
@@ -200,23 +188,23 @@ FUAPIDemoBarDelegate
 // 贴纸
 - (void)demoBarDidSelectedItem:(NSString *)item {
     NSLog(@"------ %@",item);
-    [[FaceUnityManager shareManager] loadItem:item];
+    [[FUManager shareManager] loadItem:item];
 }
 // 滤镜
 - (void)demoBarDidSelectedFilter:(NSString *)filter {
     
-    [FaceUnityManager shareManager].selectedFilter = filter ;
+    [FUManager shareManager].selectedFilter = filter ;
 }
 // 美颜
 - (void)demoBarBeautyParamChanged {
     
-    [FaceUnityManager shareManager].selectedBlur = self.fuBar.selectedBlur;
-    [FaceUnityManager shareManager].redLevel = self.fuBar.redLevel ;
-    [FaceUnityManager shareManager].faceShapeLevel = self.fuBar.faceShapeLevel ;
-    [FaceUnityManager shareManager].faceShape = self.fuBar.faceShape ;
-    [FaceUnityManager shareManager].beautyLevel = self.fuBar.beautyLevel ;
-    [FaceUnityManager shareManager].thinningLevel = self.fuBar.thinningLevel ;
-    [FaceUnityManager shareManager].enlargingLevel = self.fuBar.enlargingLevel ;
+    [FUManager shareManager].selectedBlur = self.fuBar.selectedBlur;
+    [FUManager shareManager].redLevel = self.fuBar.redLevel ;
+    [FUManager shareManager].faceShapeLevel = self.fuBar.faceShapeLevel ;
+    [FUManager shareManager].faceShape = self.fuBar.faceShape ;
+    [FUManager shareManager].beautyLevel = self.fuBar.beautyLevel ;
+    [FUManager shareManager].thinningLevel = self.fuBar.thinningLevel ;
+    [FUManager shareManager].enlargingLevel = self.fuBar.enlargingLevel ;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -666,8 +654,7 @@ FUAPIDemoBarDelegate
     
     
     /**---- FaceUnity ----**/
-    [[FaceUnityManager shareManager] fuManagerRenderPixelBuffer:pixelBuffer FrameID:frameID];
-    frameID ++ ;
+    [[FUManager shareManager] processPixelBuffer:pixelBuffer];
     
     
     /* 横竖屏时更新sdk内置UI 坐标 */
@@ -877,7 +864,7 @@ FUAPIDemoBarDelegate
     [KWSDK_UI releaseManager];
     
     /*---- FU ----*/
-    [[FaceUnityManager shareManager] removeAllEffect];
+    [[FUManager shareManager] destoryFaceunityItems];
 }
 
 #pragma mark -- UICollectionView delegate  用来展示和处理 SDK 内部自带的滤镜效果
