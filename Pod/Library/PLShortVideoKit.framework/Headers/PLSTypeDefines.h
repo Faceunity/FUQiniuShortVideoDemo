@@ -66,6 +66,52 @@ typedef enum {
     PLSVideoFillModePreserveAspectRatioAndFill
 } PLSVideoFillModeType;
 
+/**
+ @typedef    PLSPreviewOrientation
+ @abstract   预览视图的方向。
+ 
+ @since      v1.3.0
+ */
+typedef NS_ENUM(NSInteger, PLSPreviewOrientation) {
+    PLSPreviewOrientationPortrait           = 1,
+    PLSPreviewOrientationPortraitUpsideDown = 2,
+    PLSPreviewOrientationLandscapeRight     = 3,
+    PLSPreviewOrientationLandscapeLeft      = 4,
+};
+
+/**
+ @typedef    PLSVideoRecoderRateType
+ @abstract   视频拍摄速率。
+
+ @since      v1.4.0
+ */
+typedef NS_ENUM(NSInteger, PLSVideoRecoderRateType) {
+    /**
+     @brief Maintains the video recoder rate normal, 1x
+     */
+    PLSVideoRecoderRateNormal = 0,
+    
+    /**
+     @brief Maintains the video recoder rate slow, 0.667x
+     */
+    PLSVideoRecoderRateSlow,
+    
+    /**
+     @brief Maintains the video recoder rate very slow, 0.5x
+     */
+    PLSVideoRecoderRateTopSlow,
+    
+    /**
+     @brief Maintains the video recoder rate fast, 1.5x
+     */
+    PLSVideoRecoderRateFast,
+    
+    /**
+     @brief Maintains the video recoder rate very fast, 2x
+     */
+    PLSVideoRecoderRateTopFast
+};
+
 #pragma mark - Audio SampleRate
 
 /**
@@ -112,8 +158,9 @@ typedef enum {
  @since      v1.0.5
  */
 typedef NS_ENUM(NSUInteger, PLSFileType) {
-    PLSFileTypeMPEG4,
-    PLSFileTypeQuickTimeMovie
+    PLSFileTypeMPEG4, // .mp4
+    PLSFileTypeQuickTimeMovie, // .mov
+    PLSFileTypeM4A, // .m4a
 };
 
 #pragma mark - Video File Preset

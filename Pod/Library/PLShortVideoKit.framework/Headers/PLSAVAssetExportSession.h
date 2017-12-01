@@ -58,11 +58,18 @@
 - (instancetype _Nullable )initWithAsset:(AVAsset *_Nullable)asset;
 
 /**
- @brief 视频导出的文件类型，默认为 AVFileTypeMPEG4
+ @brief 将视频导出到相册，默认为 NO
  
+ @since      v1.4.0
+ */
+@property (assign, nonatomic) BOOL isExportMovieToPhotosAlbum;
+
+/**
+ @brief 视频导出的文件类型，默认为 PLSFileTypeMPEG4(.mp4)
+
  @since      v1.1.0
  */
-@property (strong, nonatomic) NSString * _Nullable outputFileType;
+@property (assign, nonatomic) PLSFileType outputFileType;
 
 /**
  @brief 视频导出的路径
@@ -70,6 +77,13 @@
  @since      v1.1.0
  */
 @property (strong, nonatomic) NSURL * _Nullable outputURL;
+
+/**
+ @brief 视频导出的分辨率
+ 
+ @since      v1.5.0
+ */
+@property (assign, nonatomic) CGSize outputVideoSize;
 
 /**
  @brief 是否设置便于网络环境下的传输，默认为 YES
@@ -126,6 +140,25 @@
  @since      v1.1.0
  */
 - (void)cancelExport;
+
+/**
+ *  添加滤镜效果
+ *
+ *  @param colorImagePath 当前使用的滤镜的颜色表图的路径
+ 
+ @since      v1.5.0
+ */
+- (void)addFilter:(NSString *_Nullable)colorImagePath;
+
+/**
+ *  添加 MV 图层
+ *
+ *  @param colorURL 彩色层视频的地址
+ *  @param alphaURL 被彩色层当作透明层的视频的地址
+ 
+ @since      v1.5.0
+ */
+- (void)addMVLayerWithColor:(NSURL *_Nullable)colorURL alpha:(NSURL *_Nullable)alphaURL;
 
 @end
 

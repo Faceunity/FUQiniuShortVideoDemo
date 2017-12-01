@@ -26,10 +26,14 @@ FOUNDATION_EXPORT const unsigned char PLShortVideoKitVersionString[];
 #import <PLShortVideoKit/PLShortVideoTranscoder.h>
 #import <PLShortVideoKit/PLSAVAssetExportSession.h>
 
-#import <PLShortVideoKit/PLSFile.h>
-#import <PLShortVideoKit/PLSFileSection.h>
 #import <PLShortVideoKit/PLSEditSettings.h>
 #import <PLShortVideoKit/PLSFilter.h>
 #import <PLShortVideoKit/PLSEditPlayer.h>
+
+#import <PLShortVideoKit/PLSGifComposer.h>
+#import <PLShortVideoKit/PLSMovieComposer.h>
+#import <PLShortVideoKit/PLSReverserEffect.h>
+#import <PLShortVideoKit/PLShortVideoAsset.h>
+
 
 

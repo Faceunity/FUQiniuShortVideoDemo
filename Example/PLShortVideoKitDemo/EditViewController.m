@@ -7,14 +7,16 @@
 //
 
 #import "EditViewController.h"
-#import "PLSEditVideoCell.h"
-#import "PLShortVideoKit/PLShortVideoKit.h"
+#import "GifFormatViewController.h"
+#import "DubViewController.h"
 #import "PlayViewController.h"
+#import "PLSEditVideoCell.h"
 #import "PLSAudioVolumeView.h"
 #import "PLSClipAudioView.h"
 #import "PLSFilterGroup.h"
+#import "PLSRateButtonView.h"
+#import "PLShortVideoKit/PLShortVideoKit.h"
 #import <AssetsLibrary/AssetsLibrary.h>
-#import "Stalker.h"
 
 #define PLS_RGBCOLOR(r,g,b) [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:1]
 
@@ -29,7 +31,9 @@ UICollectionViewDataSource,
 UICollectionViewDelegateFlowLayout,
 PLSAudioVolumeViewDelegate,
 PLSClipAudioViewDelegate,
-PLSEditPlayerDelegate,
+PLSRateButtonViewDelegate,
+DubViewControllerDelegate,
+PLShortVideoEditorDelegate,
 PLSAVAssetExportSessionDelegate
 >
 
@@ -37,6 +41,9 @@ PLSAVAssetExportSessionDelegate
 @property (strong, nonatomic) NSURL *watermarkURL;
 @property (assign, nonatomic) CGSize watermarkSize;
 @property (assign, nonatomic) CGPoint watermarkPosition;
+
+// 视频的分辨率，设置之后影响编辑时的预览分辨率、导出的视频的的分辨率
+@property (assign, nonatomic) CGSize videoSize;
 
 // 编辑
 @property (strong, nonatomic) PLShortVideoEditor *shortVideoEditor;
@@ -49,29 +56,40 @@ PLSAVAssetExportSessionDelegate
 @property (strong, nonatomic) UIView *baseToolboxView;
 @property (strong, nonatomic) UIView *editToolboxView;
 
+// 选取要编辑的功能点
+@property (assign, nonatomic) NSInteger selectionViewIndex;
+// 展示所有滤镜、音乐、MV、字幕列表的集合视图
+@property (strong, nonatomic) UICollectionView *editCollectionView;
 // 所有滤镜
 @property (strong, nonatomic) PLSFilterGroup *filterGroup;
-// 展示所有滤镜的集合视图
-@property (strong, nonatomic) UICollectionView *editVideoCollectionView;
+// 滤镜信息
 @property (strong, nonatomic) NSMutableArray<NSDictionary *> *filtersArray;
 @property (assign, nonatomic) NSInteger filterIndex;
+@property (strong, nonatomic) NSString *colorImagePath;
+// 音乐信息
+@property (strong, nonatomic) NSMutableArray *musicsArray;
+// MV信息
+@property (strong, nonatomic) NSMutableArray *mvArray;
+@property (strong, nonatomic) NSURL *colorURL;
+@property (strong, nonatomic) NSURL *alphaURL;
+//时光倒流
+@property (nonatomic, strong) PLSReverserEffect *reverser;
+@property (nonatomic, strong) AVAsset *inputAsset;
+@property (nonatomic, strong) UIButton *reverserButton;
 
+// 视频合成的进度
 @property (strong, nonatomic) UILabel *progressLabel;
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 
-@property (strong, nonatomic) UICollectionView *musicCollectionView;
-@property (strong, nonatomic) NSMutableArray *musicsArray;
+// 倍数下标
+@property (assign, nonatomic) NSInteger titleIndex;
+@property (strong, nonatomic) NSArray *titleArray;
+@property (strong, nonatomic) NSMutableDictionary *originMovieSettings;
 
-// 视频
-@property (strong, nonatomic) NSTimer *moviePlayTimeCheckerTimer;
-@property (assign, nonatomic) CGFloat movieCurrentTime;
 
 @end
 
 @implementation EditViewController
-{
-    PlayViewController *playViewController;
-}
 
 #pragma mark -- 获取视频／音频文件的总时长
 - (CGFloat)getFileDuration:(NSURL*)URL {
@@ -102,13 +120,10 @@ PLSAVAssetExportSessionDelegate
     // --------------------------
     [self setupBaseToolboxView];
     [self setupEditToolboxView];
+    [self setupMergeToolboxView];
     
-    // 水印图片地址
-    NSString *watermarkPath = [[NSBundle mainBundle] pathForResource:@"qiniu_logo" ofType:@".png"];
-    UIImage *watermarkImage = [UIImage imageWithContentsOfFile:watermarkPath];
-    self.watermarkURL = [NSURL URLWithString:watermarkPath];
-    self.watermarkSize = watermarkImage.size;
-    self.watermarkPosition = CGPointMake(10, 65);
+    // 视频的分辨率，设置之后影响编辑时的预览分辨率、导出的视频的的分辨率
+    self.videoSize = CGSizeMake(544, 960);
     
     // 编辑
     /* outputSettings 中的字典元素为 movieSettings, audioSettings, watermarkSettings */
@@ -116,27 +131,49 @@ PLSAVAssetExportSessionDelegate
     self.movieSettings = [[NSMutableDictionary alloc] init];
     self.audioSettings = [[NSMutableDictionary alloc] init];
     self.watermarkSettings = [[NSMutableDictionary alloc] init];
+    
     self.outputSettings[PLSMovieSettingsKey] = self.movieSettings;
     self.outputSettings[PLSAudioSettingsKey] = self.audioSettings;
     self.outputSettings[PLSWatermarkSettingsKey] = self.watermarkSettings;
+    
+    // 原始视频
     [self.movieSettings addEntriesFromDictionary:self.settings[PLSMovieSettingsKey]];
+    self.movieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:1.0];
+
+    // 背景音乐
+    self.audioSettings[PLSVolumeKey] = [NSNumber numberWithFloat:1.0];
+    
+    // 水印图片路径
+    NSString *watermarkPath = [[NSBundle mainBundle] pathForResource:@"qiniu_logo" ofType:@".png"];
+    UIImage *watermarkImage = [UIImage imageWithContentsOfFile:watermarkPath];
+    self.watermarkURL = [NSURL URLWithString:watermarkPath];
+    self.watermarkSize = watermarkImage.size;
+    self.watermarkPosition = CGPointMake(10, 65);
+    // 水印
     self.watermarkSettings[PLSURLKey] = self.watermarkURL;
     self.watermarkSettings[PLSSizeKey] = [NSValue valueWithCGSize:self.watermarkSize];
     self.watermarkSettings[PLSPointKey] = [NSValue valueWithCGPoint:self.watermarkPosition];
     
+    // 视频编辑类
     AVAsset *asset = self.movieSettings[PLSAssetKey];
-    self.shortVideoEditor = [[PLShortVideoEditor alloc] initWithAsset:asset];
-    self.shortVideoEditor.player.delegate = self;
-    self.shortVideoEditor.player.loopEnabled = YES;
-    self.shortVideoEditor.player.preview.frame = CGRectMake(0, 64, PLS_SCREEN_WIDTH, PLS_SCREEN_WIDTH);
-    self.shortVideoEditor.player.fillMode = PLSVideoFillModePreserveAspectRatio;
-    [self.view addSubview:self.shortVideoEditor.player.preview];
-    // 播放预览时，加水印
-    [self.shortVideoEditor.player setWaterMarkWithImage:watermarkImage position:CGPointMake(10, 65)];
+    self.originMovieSettings = [[NSMutableDictionary alloc] init];
+    [self.originMovieSettings addEntriesFromDictionary:self.settings[PLSMovieSettingsKey]];
+
+   
+    self.shortVideoEditor = [[PLShortVideoEditor alloc] initWithAsset:asset videoSize:CGSizeZero];
+    self.shortVideoEditor.delegate = self;
+    self.shortVideoEditor.loopEnabled = YES;
+    self.shortVideoEditor.previewView.frame = CGRectMake(0, 64, PLS_SCREEN_WIDTH, PLS_SCREEN_WIDTH);
+    self.shortVideoEditor.fillMode = PLSVideoFillModePreserveAspectRatio;
+    [self.view addSubview:self.shortVideoEditor.previewView];
+    // 要处理的视频的时间区域
     CMTime start = CMTimeMake([self.movieSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9);
     CMTime duration = CMTimeMake([self.movieSettings[PLSDurationKey] floatValue] * 1e9, 1e9);
-    self.shortVideoEditor.player.timeRange = CMTimeRangeMake(start, duration);
-    self.shortVideoEditor.audioPlayer.loopEnabled = YES;
+    self.shortVideoEditor.timeRange = CMTimeRangeMake(start, duration);
+    // 视频编辑时，添加水印
+    [self.shortVideoEditor setWaterMarkWithImage:watermarkImage position:self.watermarkPosition];
+    // 视频编辑时，改变预览分辨率
+    self.shortVideoEditor.videoSize = self.videoSize;
     
     // 滤镜
     self.filterGroup = [[PLSFilterGroup alloc] init];
@@ -145,38 +182,17 @@ PLSAVAssetExportSessionDelegate
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    // player
-    [self.shortVideoEditor.player.stalker when:UIApplicationWillResignActiveNotification then:^(NSNotification *notification) {
-        NSLog(@"[shortVideoEditor.player UIApplicationWillResignActiveNotification]");
-        [self.shortVideoEditor.player pause];
-    }];
-    [self.shortVideoEditor.player.stalker when:UIApplicationDidBecomeActiveNotification then:^(NSNotification *notification) {
-        NSLog(@"[shortVideoEditor.player, UIApplicationDidBecomeActiveNotification]");
-        [self.shortVideoEditor.player play];
-    }];
-    // audioPlayer
-    [self.shortVideoEditor.audioPlayer.stalker when:UIApplicationWillResignActiveNotification then:^(NSNotification *notification) {
-        NSLog(@"[shortVideoEditor.audioPlayer UIApplicationWillResignActiveNotification]");
-        [self.shortVideoEditor.audioPlayer pause];
-    }];
-    [self.shortVideoEditor.audioPlayer.stalker when:UIApplicationDidBecomeActiveNotification then:^(NSNotification *notification) {
-        NSLog(@"[shortVideoEditor.audioPlayer, UIApplicationDidBecomeActiveNotification]");
-        [self.shortVideoEditor.audioPlayer play];
-    }];
-    [self startPlaybackTimeChecker];
-    [self.shortVideoEditor.player seekToTime:CMTimeMake([self.movieSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
-    [self.shortVideoEditor.player play];
-    [self.shortVideoEditor.audioPlayer play];
+    [self observerUIApplicationStatusForShortVideoEditor];
+    
+    [self.shortVideoEditor startEditing];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
-    [self.shortVideoEditor.player.stalker unobserveAll];
-    [self.shortVideoEditor.audioPlayer.stalker unobserveAll];
-    [self stopPlaybackTimeChecker];
-    [self.shortVideoEditor.player pause];
-    [self.shortVideoEditor.audioPlayer pause];
+    [self removeObserverUIApplicationStatusForShortVideoEditor];
+    
+    [self.shortVideoEditor stopEditing];
 }
 
 #pragma mark -- 配置视图
@@ -229,67 +245,135 @@ PLSAVAssetExportSessionDelegate
     self.editToolboxView.backgroundColor = PLS_RGBCOLOR(25, 24, 36);
     [self.view addSubview:self.editToolboxView];
     
+    UIScrollView *buttonScrollView = [[UIScrollView alloc]initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, 35)];
+    buttonScrollView.backgroundColor = PLS_RGBCOLOR(25, 24, 36);
+    buttonScrollView.contentSize = CGSizeMake(582, 35);
+    buttonScrollView.contentOffset = CGPointMake(0, 0);
+    buttonScrollView.pagingEnabled = YES;
+    buttonScrollView.bounces = YES;
+    buttonScrollView.showsHorizontalScrollIndicator = NO;
+    buttonScrollView.showsVerticalScrollIndicator = NO;
+    [self.editToolboxView addSubview:buttonScrollView];
+    
+    UILabel *hintLabel = [[UILabel alloc]initWithFrame:CGRectMake(5, 0, 162, 35)];
+    hintLabel.font = [UIFont systemFontOfSize:13];
+    hintLabel.textAlignment = NSTextAlignmentLeft;
+    hintLabel.textColor = [UIColor redColor];
+    hintLabel.text = @"左右滑动体验更多功能按钮";
+    [buttonScrollView addSubview:hintLabel];
+
     // 滤镜
     UIButton *filterButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    filterButton.frame = CGRectMake(0, 20, 30, 30);
+    filterButton.frame = CGRectMake(177, 0, 35, 35);
     [filterButton setTitle:@"滤镜" forState:UIControlStateNormal];
     [filterButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     filterButton.titleLabel.font = [UIFont systemFontOfSize:14];
-    [self.editToolboxView addSubview:filterButton];
+    [filterButton addTarget:self action:@selector(filterButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:filterButton];
     
-    // 裁剪背景音乐
-    UIButton *clipMusicButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    clipMusicButton.frame = CGRectMake(CGRectGetWidth(self.view.frame) - 140, 0, 35, 35);
-    [clipMusicButton setImage:[UIImage imageNamed:@"icon_trim"] forState:UIControlStateNormal];
-    [self.editToolboxView addSubview:clipMusicButton];
-    [clipMusicButton addTarget:self action:@selector(clipMusicButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
-    
-    // 音量调节
-    UIButton *volumeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    volumeButton.frame = CGRectMake(CGRectGetWidth(self.view.frame) - 100, 0, 35, 35);
-    [volumeButton setImage:[UIImage imageNamed:@"icon_volume"] forState:UIControlStateNormal];
-    [self.editToolboxView addSubview:volumeButton];
-    [volumeButton addTarget:self action:@selector(volumeChangeEvent:) forControlEvents:UIControlEventTouchUpInside];
-    
-    // 关闭原声
-    UIButton *closeSoundButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    closeSoundButton.frame = CGRectMake(CGRectGetWidth(self.view.frame) - 60, 0, 60, 35);
-    [closeSoundButton setImage:[UIImage imageNamed:@"btn_sound"] forState:UIControlStateNormal];
-    [closeSoundButton setImage:[UIImage imageNamed:@"btn_close_sound"] forState:UIControlStateSelected];
-    [self.editToolboxView addSubview:closeSoundButton];
-    [closeSoundButton addTarget:self action:@selector(closeSoundButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
-    
-    // 展示滤镜效果的 UICollectionView
-    CGRect frame = self.editVideoCollectionView.frame;
-    self.editVideoCollectionView.frame = CGRectMake(frame.origin.x,  CGRectGetMaxY(filterButton.frame), frame.size.width, frame.size.height);
-    [self.editToolboxView addSubview:self.editVideoCollectionView];
-    [self.editVideoCollectionView reloadData];
-    
-    // 音乐
+    // 选择背景音乐
     UIButton *musicButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    musicButton.frame = CGRectMake(0, CGRectGetMaxY(self.editVideoCollectionView.frame) + 10, 30, 30);
+    musicButton.frame = CGRectMake(222, 0, 35, 35);
     [musicButton setTitle:@"音乐" forState:UIControlStateNormal];
     [musicButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     musicButton.titleLabel.font = [UIFont systemFontOfSize:14];
-    [self.editToolboxView addSubview:musicButton];
+    [musicButton addTarget:self action:@selector(musicButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:musicButton];
 
-    // 展示音乐效果的 UICollectionView
-    frame = self.musicCollectionView.frame;
-    self.musicCollectionView.frame = CGRectMake(frame.origin.x, CGRectGetMaxY(musicButton.frame), frame.size.width, frame.size.height);
-    [self.editToolboxView addSubview:self.musicCollectionView];
-    [self.musicCollectionView reloadData];
+
+    // MV 特效
+    UIButton *mvButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    mvButton.frame = CGRectMake(267, 0, 35, 35);
+    [mvButton setTitle:@"MV" forState:UIControlStateNormal];
+    [mvButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    mvButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [mvButton addTarget:self action:@selector(mvButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:mvButton];
+
+    // 配音
+    UIButton *audioDubButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    audioDubButton.frame = CGRectMake(312, 0, 35, 35);
+    [audioDubButton setImage:[UIImage imageNamed:@"icon_dub"] forState:UIControlStateNormal];
+    audioDubButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [audioDubButton addTarget:self action:@selector(dubAudioButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+        [buttonScrollView addSubview:audioDubButton];
+
+    // 时光倒流
+    self.reverserButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.reverserButton.frame = CGRectMake(357, 0, 35, 35);
+    [self.reverserButton setImage:[UIImage imageNamed:@"Time_Machine_No_Reverser"] forState:UIControlStateNormal];
+    [self.reverserButton setImage:[UIImage imageNamed:@"Time_Machine_Reverser"] forState:UIControlStateSelected];
+    self.reverserButton.selected = NO;
+    [self.reverserButton addTarget:self action:@selector(reverserButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:_reverserButton];
+
     
-    // 展示拼接视频的进度
-    self.progressLabel = [[UILabel alloc] initWithFrame:CGRectMake(160, 0, 110, 45)];
-    self.progressLabel.textAlignment =  NSTextAlignmentLeft;
-    self.progressLabel.textColor = [UIColor whiteColor];
-    [self.editToolboxView addSubview:self.progressLabel];
+    // 制作Gif图
+    UIButton *formGifButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    formGifButton.frame = CGRectMake(402, 0, 35, 35);
+    [formGifButton setImage:[UIImage imageNamed:@"icon_gif"] forState:UIControlStateNormal];
+    formGifButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [formGifButton addTarget:self action:@selector(formatGifButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:formGifButton];
+
     
+    // 裁剪背景音乐
+    UIButton *clipMusicButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    clipMusicButton.frame = CGRectMake(447, 0, 35, 35);
+    [clipMusicButton setImage:[UIImage imageNamed:@"icon_trim"] forState:UIControlStateNormal];
+    [clipMusicButton addTarget:self action:@selector(clipMusicButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:clipMusicButton];
+
+    
+    // 音量调节
+    UIButton *volumeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    volumeButton.frame = CGRectMake(492, 0, 35, 35);
+    [volumeButton setImage:[UIImage imageNamed:@"icon_volume"] forState:UIControlStateNormal];
+    [volumeButton addTarget:self action:@selector(volumeChangeEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:volumeButton];
+
+    
+    // 关闭原声
+    UIButton *closeSoundButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    closeSoundButton.frame = CGRectMake(537, 0, 35, 35);
+    [closeSoundButton setImage:[UIImage imageNamed:@"btn_sound"] forState:UIControlStateNormal];
+    [closeSoundButton setImage:[UIImage imageNamed:@"btn_close_sound"] forState:UIControlStateSelected];
+    [closeSoundButton addTarget:self action:@selector(closeSoundButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [buttonScrollView addSubview:closeSoundButton];
+
+    
+    // 倍数处理
+    self.titleArray = @[@"极慢", @"慢", @"正常", @"快", @"极快"];
+    self.titleIndex = 2;
+    PLSRateButtonView *rateButtonView = [[PLSRateButtonView alloc]initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame) - 270, 40, 260, 34) defaultIndex:self.titleIndex];
+    rateButtonView.hidden = NO;
+    CGFloat countSpace = 200 /self.titleArray.count / 6;
+    rateButtonView.space = countSpace;
+    rateButtonView.staticTitleArray = self.titleArray;
+    rateButtonView.rateDelegate = self;
+    [self.editToolboxView addSubview:rateButtonView];
+    
+    // 展示滤镜、音乐、字幕列表效果的 UICollectionView
+    CGRect frame = self.editCollectionView.frame;
+    self.editCollectionView.frame = CGRectMake(0, 80, frame.size.width, frame.size.height);
+    [self.editToolboxView addSubview:self.editCollectionView];
+    [self.editCollectionView reloadData];
+}
+
+- (void)setupMergeToolboxView {
     // 展示拼接视频的动画
     self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:self.view.bounds];
     self.activityIndicatorView.center = self.view.center;
     [self.activityIndicatorView setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleWhiteLarge];
     self.activityIndicatorView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+    
+    // 展示拼接视频的进度
+    CGFloat width = self.activityIndicatorView.frame.size.width;
+    self.progressLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, width, 45)];
+    self.progressLabel.textAlignment =  NSTextAlignmentCenter;
+    self.progressLabel.textColor = [UIColor whiteColor];
+    self.progressLabel.center = CGPointMake(self.activityIndicatorView.center.x, self.activityIndicatorView.center.y + 40);
+    [self.activityIndicatorView addSubview:self.progressLabel];
 }
 
 // 加载拼接视频的动画
@@ -344,7 +428,7 @@ PLSAVAssetExportSessionDelegate
     
     
     NSDictionary *dic = @{
-                          @"audioName"  : @"None",
+                          @"audioName"  : @"无",
                           @"audioUrl"   : @"NULL",
                           };
     [array addObject:dic];
@@ -364,53 +448,73 @@ PLSAVAssetExportSessionDelegate
     return array;
 }
 
-#pragma mark -- 加载 collectionView 视图
-- (UICollectionView *)editVideoCollectionView {
-    if (!_editVideoCollectionView) {
+#pragma mark -- MV资源
+- (NSMutableArray *)mvArray {
+    NSMutableArray *array = [[NSMutableArray alloc] init];
+    
+    NSString *bundlePath = [NSBundle mainBundle].bundlePath;
+    NSString *jsonPath = [bundlePath stringByAppendingString:@"/plsMVs.json"];
+    NSData *data = [NSData dataWithContentsOfFile:jsonPath];
+    NSError *error;
+    NSDictionary *dicFromJson = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+    //    NSLog(@"load internal filters json error: %@", error);
+    
+    NSArray *jsonArray = [dicFromJson objectForKey:@"MVs"];
+    
+    
+    NSString *name = @"None";
+    NSString *coverDir = [[NSBundle mainBundle] pathForResource:@"mv" ofType:@"png"];
+    NSString *colorDir = @"NULL";
+    NSString *alphaDir = @"NULL";
+    NSDictionary *dic = @{
+                          @"name"     : name,
+                          @"coverDir" : coverDir,
+                          @"colorDir" : colorDir,
+                          @"alphaDir" : alphaDir
+                          };
+    [array addObject:dic];
+    
+    for (int i = 0; i < jsonArray.count; i++) {
+        NSDictionary *mv = jsonArray[i];
+        NSString *name = [mv objectForKey:@"name"];
+        NSString *coverDir = [[NSBundle mainBundle] pathForResource:[mv objectForKey:@"coverDir"] ofType:@"png"];
+        NSString *colorDir = [[NSBundle mainBundle] pathForResource:[mv objectForKey:@"colorDir"] ofType:@"mp4"];
+        NSString *alphaDir = [[NSBundle mainBundle] pathForResource:[mv objectForKey:@"alphaDir"] ofType:@"mp4"];
         
-        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc]init];
-        layout.itemSize = CGSizeMake(50, 65);
-        [layout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
-        layout.minimumLineSpacing = 10;
-        layout.minimumInteritemSpacing = 10;
-        
-        _editVideoCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, layout.itemSize.height) collectionViewLayout:layout];
-        _editVideoCollectionView.backgroundColor = [UIColor clearColor];
-        
-        _editVideoCollectionView.showsHorizontalScrollIndicator = NO;
-        _editVideoCollectionView.showsVerticalScrollIndicator = NO;
-        [_editVideoCollectionView setExclusiveTouch:YES];
-        
-        [_editVideoCollectionView registerClass:[PLSEditVideoCell class] forCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class])];
-        
-        _editVideoCollectionView.delegate = self;
-        _editVideoCollectionView.dataSource = self;
+        NSDictionary *dic = @{
+                              @"name"     : name,
+                              @"coverDir" : coverDir,
+                              @"colorDir" : colorDir,
+                              @"alphaDir" : alphaDir
+                              };
+        [array addObject:dic];
     }
-    return _editVideoCollectionView;
+    
+    return array;
 }
 
-- (UICollectionView *)musicCollectionView {
-    if (!_musicCollectionView) {
-        
+#pragma mark -- 加载 collectionView 视图
+- (UICollectionView *)editCollectionView {
+    if (!_editCollectionView) {
         UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc]init];
-        layout.itemSize = CGSizeMake(65, 80);
+        layout.itemSize = CGSizeMake(90, 105);
         [layout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
         layout.minimumLineSpacing = 10;
         layout.minimumInteritemSpacing = 10;
         
-        _musicCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, layout.itemSize.height) collectionViewLayout:layout];
-        _musicCollectionView.backgroundColor = [UIColor clearColor];
+        _editCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, layout.itemSize.height) collectionViewLayout:layout];
+        _editCollectionView.backgroundColor = [UIColor clearColor];
         
-        _musicCollectionView.showsHorizontalScrollIndicator = NO;
-        _musicCollectionView.showsVerticalScrollIndicator = NO;
-        [_musicCollectionView setExclusiveTouch:YES];
+        _editCollectionView.showsHorizontalScrollIndicator = NO;
+        _editCollectionView.showsVerticalScrollIndicator = NO;
+        [_editCollectionView setExclusiveTouch:YES];
         
-        [_musicCollectionView registerClass:[PLSEditVideoCell class] forCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class])];
+        [_editCollectionView registerClass:[PLSEditVideoCell class] forCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class])];
         
-        _musicCollectionView.delegate = self;
-        _musicCollectionView.dataSource = self;
+        _editCollectionView.delegate = self;
+        _editCollectionView.dataSource = self;
     }
-    return _musicCollectionView;
+    return _editCollectionView;
 }
 
 #pragma mark -- 获取音乐文件的封面
@@ -438,18 +542,24 @@ PLSAVAssetExportSessionDelegate
 
 #pragma mark -- UICollectionView delegate  用来展示和处理 SDK 内部自带的滤镜效果
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
-    if (collectionView == self.editVideoCollectionView) {
+    if (self.selectionViewIndex == 0) {
+        // 滤镜
         return self.filtersArray.count;
-    }
-    else
+        
+    } else if (self.selectionViewIndex == 1) {
+        // 音乐
         return self.musicsArray.count;
+        
+    } else
+        // MV
+        return self.mvArray.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     PLSEditVideoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class]) forIndexPath:indexPath];
-    
-    if (collectionView == self.editVideoCollectionView) {
+    [cell setLabelFrame:CGRectMake(0, 0, 90, 15) imageViewFrame:CGRectMake(0, 15, 90, 90)];
 
+    if (self.selectionViewIndex == 0) {
         // 滤镜
         NSDictionary *filterInfoDic = self.filtersArray[indexPath.row];
         
@@ -459,33 +569,41 @@ PLSAVAssetExportSessionDelegate
         cell.iconPromptLabel.text = name;
         cell.iconImageView.image = [UIImage imageWithContentsOfFile:coverImagePath];
         
-        return  cell;
-
-    }
-    else {
-        
+    } else if (self.selectionViewIndex == 1) {
+        // 音乐
         NSDictionary *dic = self.musicsArray[indexPath.row];
         NSString *musicName = [dic objectForKey:@"audioName"];
         NSURL *musicUrl = [dic objectForKey:@"audioUrl"];
         UIImage *musicImage = [self musicImageWithMusicURL:musicUrl];
 
-        cell.iconImageView.image = musicImage;
         cell.iconPromptLabel.text = musicName;
+        cell.iconImageView.image = musicImage;
+
+    } else if (self.selectionViewIndex == 2) {
+        // MV
+        NSDictionary *dic = self.mvArray[indexPath.row];
+        NSString *name = [dic objectForKey:@"name"];
+        NSString *coverDir = [dic objectForKey:@"coverDir"];
+        UIImage *coverImage = [UIImage imageWithContentsOfFile:coverDir];
+        
+        cell.iconPromptLabel.text = name;
+        cell.iconImageView.image = coverImage;
     }
     
     return  cell;
 }
 
-#pragma mark -- 切换背景音乐
+#pragma mark -- 切换滤镜、背景音乐、MV 特效
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    
-    if (collectionView == self.editVideoCollectionView) {
-
+    if (self.selectionViewIndex == 0) {
         // 滤镜
         self.filterGroup.filterIndex = indexPath.row;
+        NSString *colorImagePath = self.filterGroup.colorImagePath;
         
-    }
-    else {
+        [self addFilter:colorImagePath];
+        
+    } else if (self.selectionViewIndex == 1) {
+        // 音乐
         if (!indexPath.row) {
             // ****** 要特别注意此处，无音频 URL ******
             NSDictionary *dic = self.musicsArray[indexPath.row];
@@ -495,8 +613,6 @@ PLSAVAssetExportSessionDelegate
             self.audioSettings[PLSStartTimeKey] = [NSNumber numberWithFloat:0.f];
             self.audioSettings[PLSDurationKey] = [NSNumber numberWithFloat:0.f];
             self.audioSettings[PLSNameKey] = musicName;
-
-            [self restart];
 
         } else {
             
@@ -509,52 +625,68 @@ PLSAVAssetExportSessionDelegate
             self.audioSettings[PLSDurationKey] = [NSNumber numberWithFloat:[self getFileDuration:musicUrl]];
             self.audioSettings[PLSNameKey] = musicName;
             
-            [self restart];
+        }
+        
+        NSURL *musicURL = self.audioSettings[PLSURLKey];
+        CMTimeRange musicTimeRange= CMTimeRangeMake(CMTimeMake([self.audioSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9), CMTimeMake([self.audioSettings[PLSDurationKey] floatValue] * 1e9, 1e9));
+        NSNumber *musicVolume = self.audioSettings[PLSVolumeKey];
+        [self addMusic:musicURL timeRange:musicTimeRange volume:musicVolume];
+
+    } else if (self.selectionViewIndex == 2) {
+        if (!indexPath.row) {
+            // ****** 要特别注意此处，无MV URL ******
+//            NSDictionary *dic = self.mvArray[indexPath.row];
+//            NSString *name = [dic objectForKey:@"name"];
+//            NSString *coverDir = [dic objectForKey:@"coverDir"];
+//            NSString *colorDir = [dic objectForKey:@"colorDir"];
+//            NSString *alphaDir = [dic objectForKey:@"alphaDir"];
+            
+            [self addMVLayerWithColor:nil alpha:nil];
+            
+        } else {
+            NSDictionary *dic = self.mvArray[indexPath.row];
+//            NSString *name = [dic objectForKey:@"name"];
+//            NSString *coverDir = [dic objectForKey:@"coverDir"];
+            NSString *colorDir = [dic objectForKey:@"colorDir"];
+            NSString *alphaDir = [dic objectForKey:@"alphaDir"];
+            
+            NSURL *colorURL = [NSURL fileURLWithPath:colorDir];
+            NSURL *alphaURL = [NSURL fileURLWithPath:alphaDir];
+            
+            [self addMVLayerWithColor:colorURL alpha:alphaURL];
         }
     }
 }
 
-#pragma mark -- PLSClipAudioViewDelegate
-// 裁剪背景音乐
-- (void)clipAudioView:(PLSClipAudioView *)clipAudioView musicTimeRangeChangedTo:(CMTimeRange)musicTimeRange {
-    self.audioSettings[PLSStartTimeKey] = [NSNumber numberWithFloat:CMTimeGetSeconds(musicTimeRange.start)];
-    self.audioSettings[PLSDurationKey] = [NSNumber numberWithFloat:CMTimeGetSeconds(musicTimeRange.duration)];
+#pragma mark -- 添加/更新 MV 特效、滤镜、背景音乐 等效果
+- (void)addMVLayerWithColor:(NSURL *)colorURL alpha:(NSURL *)alphaURL {
+    // 添加／移除 MV 特效
+    self.colorURL = colorURL;
+    self.alphaURL = alphaURL;
     
-    // 从 CMTimeGetSeconds(musicTimeRange.start) 开始播放
-    [self.shortVideoEditor.audioPlayer seekToTime:CMTimeMake(CMTimeGetSeconds(musicTimeRange.start) * 1e9, 1e9) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
-    [self.shortVideoEditor.audioPlayer play];
+    [self.shortVideoEditor addMVLayerWithColor:self.colorURL alpha:self.alphaURL];
 }
 
-#pragma mark -- PLSAudioVolumeViewDelegate
-// 调节视频和背景音乐的音量
-- (void)audioVolumeView:(PLSAudioVolumeView *)volumeView movieVolumeChangedTo:(CGFloat)movieVolume musicVolumeChangedTo:(CGFloat)musicVolume {
+- (void)addFilter:(NSString *)colorImagePath {
+    // 添加／移除 滤镜
+    self.colorImagePath = colorImagePath;
     
-    self.shortVideoEditor.player.volume = movieVolume;
-    self.shortVideoEditor.audioPlayer.volume = musicVolume;
-    
-    self.movieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:movieVolume];
-    self.audioSettings[PLSVolumeKey] = [NSNumber numberWithFloat:musicVolume];
+    [self.shortVideoEditor addFilter:self.colorImagePath];
+}
+     
+ - (void)addMusic:(NSURL *)musicURL timeRange:(CMTimeRange)timeRange volume:(NSNumber *)volume {
+     // 添加／移除 背景音乐
+    [self.shortVideoEditor addMusic:musicURL timeRange:timeRange volume:volume];
 }
 
-#pragma mark -- 视频／音频播放器重新播放
-- (void)restart {
-    // 影片
-    [self.shortVideoEditor.player setItemByAsset:self.movieSettings[PLSAssetKey]];
-    [self.shortVideoEditor.player seekToTime:CMTimeMake([self.movieSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
-    self.shortVideoEditor.player.volume = [self.movieSettings[PLSVolumeKey] floatValue];
-    [self.shortVideoEditor.player play];
-    
-    // 音频重播
-    [self.shortVideoEditor.audioPlayer setItemByUrl:[self checkNSNullType:self.audioSettings[PLSURLKey]]];
-    [self.shortVideoEditor.audioPlayer play];
+- (void)updateMusic:(CMTimeRange)timeRange volume:(NSNumber *)volume {
+    // 更新 背景音乐 的 播放时间区间、音量
+    [self.shortVideoEditor updateMusic:timeRange volume:volume];
 }
 
-#pragma mark -- PLSPlayerDelegate 处理视频数据，并将加了滤镜效果的视频数据返回
-- (CVPixelBufferRef)player:(PLSEditPlayer *)player didGetOriginPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+#pragma mark -- PLShortVideoEditorDelegate 编辑时处理视频数据，并将加了滤镜效果的视频数据返回
+- (CVPixelBufferRef)shortVideoEditor:(PLShortVideoEditor *)editor didGetOriginPixelBuffer:(CVPixelBufferRef)pixelBuffer {
     //此处可以做美颜/滤镜等处理
-    
-    PLSFilter *filter = self.filterGroup.currentFilter;
-    pixelBuffer = [filter process:pixelBuffer];
     
     return pixelBuffer;
 }
@@ -563,17 +695,114 @@ PLSAVAssetExportSessionDelegate
 - (CVPixelBufferRef)assetExportSession:(PLSAVAssetExportSession *)assetExportSession didOutputPixelBuffer:(CVPixelBufferRef)pixelBuffer {
     // 视频数据可用来做滤镜处理，将滤镜效果写入视频文件中
     
-    PLSFilter *filter = self.filterGroup.currentFilter;
-    pixelBuffer = [filter process:pixelBuffer];
-    
     return pixelBuffer;
 }
 
-- (void)assetExportSession:(PLSFile *)file didOutputProgress:(CGFloat)progress {
-    self.progressLabel.text = [NSString stringWithFormat:@"%d%%", (int)(progress * 100)];
+#pragma mark -- UIButton 按钮响应事件
+#pragma mark -- 滤镜
+- (void)filterButtonClick:(id)sender {
+    if (self.selectionViewIndex == 0) {
+        return;
+    }
+    self.selectionViewIndex = 0;
+    [self.editCollectionView reloadData];
 }
 
-#pragma mark -- UIButton 按钮响应事件
+#pragma mark -- 配音
+- (void)dubAudioButtonEvent:(id)sender{
+    DubViewController *dubViewController = [[DubViewController alloc]init];
+    dubViewController.movieSettings = self.movieSettings;
+    dubViewController.delegate = self;
+    [self presentViewController:dubViewController animated:YES completion:nil];
+}
+
+#pragma mark -- DubViewControllerDelegate 配音的回调
+- (void)didOutputAsset:(AVAsset *)asset {
+    NSLog(@"保存配音后的回调");
+    
+    self.movieSettings[PLSAssetKey] = asset;
+    self.movieSettings[PLSStartTimeKey] = [NSNumber numberWithFloat:0.f];
+    self.movieSettings[PLSDurationKey] = [NSNumber numberWithFloat:CMTimeGetSeconds(asset.duration)];
+    
+    CMTime start = CMTimeMake([self.movieSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9);
+    CMTime duration = CMTimeMake([self.movieSettings[PLSDurationKey] floatValue] * 1e9, 1e9);
+    self.shortVideoEditor.timeRange = CMTimeRangeMake(start, duration);
+    [self.shortVideoEditor replaceCurrentAssetWithAsset:self.movieSettings[PLSAssetKey]];
+    [self.shortVideoEditor startEditing];
+}
+
+#pragma mark -- 背景音乐
+- (void)musicButtonClick:(id)sender {
+    if (self.selectionViewIndex == 1) {
+        return;
+    }
+    self.selectionViewIndex = 1;
+    [self.editCollectionView reloadData];
+}
+
+#pragma mark -- MV 特效
+- (void)mvButtonClick:(id)sender {
+    if (self.selectionViewIndex == 2) {
+        return;
+    }
+    self.selectionViewIndex = 2;
+    [self.editCollectionView reloadData];
+}
+
+#pragma mark -- 制作Gif图
+- (void)formatGifButtonEvent:(id)sender {
+    [self joinGifFormatViewController];
+}
+
+#pragma mark -- 时光倒流
+- (void)reverserButtonEvent:(id)sender {
+    [self.shortVideoEditor stopEditing];
+    
+    [self loadActivityIndicatorView];
+
+    if (self.reverser.isReversing) {
+        NSLog(@"reverser effect isReversing");
+        return;
+    }
+    
+    if (self.reverser) {
+        self.reverser = nil;
+    }
+    
+    __weak typeof(self)weakSelf = self;
+    AVAsset *asset = self.movieSettings[PLSAssetKey];
+    self.reverser = [[PLSReverserEffect alloc] initWithAsset:asset];
+    self.inputAsset = self.movieSettings[PLSAssetKey];
+    [self.reverser setCompletionBlock:^(NSURL *url) {
+        [weakSelf removeActivityIndicatorView];
+
+        NSLog(@"reverser effect, url: %@", url);
+        
+        weakSelf.movieSettings[PLSURLKey] = url;
+        weakSelf.movieSettings[PLSAssetKey] = [AVAsset assetWithURL:url];
+        
+        [weakSelf.shortVideoEditor replaceCurrentAssetWithAsset:weakSelf.movieSettings[PLSAssetKey]];
+        [weakSelf.shortVideoEditor startEditing];
+    }];
+    
+    [self.reverser setFailureBlock:^(NSError *error){
+        [weakSelf removeActivityIndicatorView];
+
+        NSLog(@"reverser effect, error: %@",error);
+        
+        weakSelf.movieSettings[PLSAssetKey] = weakSelf.inputAsset;
+        
+        [weakSelf.shortVideoEditor replaceCurrentAssetWithAsset:weakSelf.movieSettings[PLSAssetKey]];
+        [weakSelf.shortVideoEditor startEditing];
+    }];
+    
+    [self.reverser setProcessingBlock:^(float progress) {
+        NSLog(@"reverser effect, progress: %f", progress);
+    }];
+    
+    [self.reverser startReversing];
+}
+
 #pragma mark -- 裁剪背景音乐
 - (void)clipMusicButtonEvent:(id)sender {
     CMTimeRange currentMusicTimeRange = CMTimeRangeMake(CMTimeMake([self.audioSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9), CMTimeMake([self.audioSettings[PLSDurationKey] floatValue] * 1e9, 1e9));
@@ -585,7 +814,10 @@ PLSAVAssetExportSessionDelegate
 
 #pragma mark -- 音量调节
 - (void)volumeChangeEvent:(id)sender {
-    PLSAudioVolumeView *volumeView = [[PLSAudioVolumeView alloc] initWithMovieVolume:self.shortVideoEditor.player.volume musicVolume:self.shortVideoEditor.audioPlayer.volume];
+    NSNumber *movieVolume = self.movieSettings[PLSVolumeKey];
+    NSNumber *musicVolume = self.audioSettings[PLSVolumeKey];
+
+    PLSAudioVolumeView *volumeView = [[PLSAudioVolumeView alloc] initWithMovieVolume:[movieVolume floatValue] musicVolume:[musicVolume floatValue]];
     volumeView.delegate = self;
     [volumeView showAtView:self.view];
 }
@@ -596,11 +828,99 @@ PLSAVAssetExportSessionDelegate
     button.selected = !button.selected;
     
     if (button.selected) {
-        self.shortVideoEditor.player.volume = 0.0f;
+        self.shortVideoEditor.volume = 0.0f;
     } else {
-        self.shortVideoEditor.player.volume = 1.0f;
+        self.shortVideoEditor.volume = 1.0f;
     }
-    self.movieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:self.shortVideoEditor.player.volume];
+    self.movieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:self.shortVideoEditor.volume];
+}
+
+#pragma mark -- PLSClipAudioViewDelegate 裁剪背景音乐 的 回调
+// 裁剪背景音乐
+- (void)clipAudioView:(PLSClipAudioView *)clipAudioView musicTimeRangeChangedTo:(CMTimeRange)musicTimeRange {
+    self.audioSettings[PLSStartTimeKey] = [NSNumber numberWithFloat:CMTimeGetSeconds(musicTimeRange.start)];
+    self.audioSettings[PLSDurationKey] = [NSNumber numberWithFloat:CMTimeGetSeconds(musicTimeRange.duration)];
+    
+    // 从 CMTimeGetSeconds(musicTimeRange.start) 开始播放
+    [self updateMusic:musicTimeRange volume:nil];
+}
+
+#pragma mark -- PLSAudioVolumeViewDelegate 音量调节 的 回调
+// 调节视频和背景音乐的音量
+- (void)audioVolumeView:(PLSAudioVolumeView *)volumeView movieVolumeChangedTo:(CGFloat)movieVolume musicVolumeChangedTo:(CGFloat)musicVolume {
+    self.movieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:movieVolume];
+    self.audioSettings[PLSVolumeKey] = [NSNumber numberWithFloat:musicVolume];
+    
+    self.shortVideoEditor.volume = movieVolume;
+    
+    [self updateMusic:kCMTimeRangeZero volume:self.audioSettings[PLSVolumeKey]];
+}
+
+#pragma mark -- PLSRateButtonViewDelegate 倍速处理
+- (void)rateButtonView:(PLSRateButtonView *)rateButtonView didSelectedTitleIndex:(NSInteger)titleIndex {
+    self.titleIndex = titleIndex;
+    PLSVideoRecoderRateType rateType = PLSVideoRecoderRateNormal;
+    switch (titleIndex) {
+        case 0:
+            rateType = PLSVideoRecoderRateTopSlow;
+            break;
+        case 1:
+            rateType = PLSVideoRecoderRateSlow;
+            break;
+        case 2:
+            rateType = PLSVideoRecoderRateNormal;
+            break;
+        case 3:
+            rateType = PLSVideoRecoderRateFast;
+            break;
+        case 4:
+            rateType = PLSVideoRecoderRateTopFast;
+            break;
+    }
+    
+    /// PLShortVideoAsset 初始化
+    PLShortVideoAsset *shortVideoAsset = [[PLShortVideoAsset alloc]initWithAsset:self.originMovieSettings[PLSAssetKey]];
+    CMTime originStart = CMTimeMake([self.originMovieSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9);
+    CMTime originDuration = CMTimeMake([self.originMovieSettings[PLSDurationKey] floatValue] * 1e9, 1e9);
+    
+    /// 倍数处理
+    AVAsset *outputAsset = [shortVideoAsset scaleAsset:self.originMovieSettings[PLSAssetKey] timeRange:CMTimeRangeMake(originStart, originDuration) rateType:rateType];
+    
+    /// 处理后的视频信息
+    CGFloat scaleFloat = [self getRateNumberWithRateType:rateType];
+    self.movieSettings[PLSAssetKey]  = outputAsset;
+    self.movieSettings[PLSDurationKey] = [NSNumber numberWithFloat:[self.originMovieSettings[PLSDurationKey] floatValue] * scaleFloat];
+    
+    CMTime start = CMTimeMake([self.movieSettings[PLSStartTimeKey] floatValue] * 1e9, 1e9);
+    CMTime duration = CMTimeMake([self.movieSettings[PLSDurationKey] floatValue] * 1e9, 1e9);
+    self.shortVideoEditor.timeRange = CMTimeRangeMake(start, duration);
+    [self.shortVideoEditor replaceCurrentAssetWithAsset:outputAsset];
+    [self.shortVideoEditor startEditing];
+}
+
+/// 根据速率配置相应倍速后的视频时长
+- (CGFloat)getRateNumberWithRateType:(PLSVideoRecoderRateType)rateType {
+    CGFloat scaleFloat = 1.0;
+    switch (rateType) {
+        case PLSVideoRecoderRateNormal:
+            scaleFloat = 1.0;
+            break;
+        case PLSVideoRecoderRateSlow:
+            scaleFloat = 1.5;
+            break;
+        case PLSVideoRecoderRateTopSlow:
+            scaleFloat = 2.0;
+            break;
+        case PLSVideoRecoderRateFast:
+            scaleFloat = 0.666667;
+            break;
+        case PLSVideoRecoderRateTopFast:
+            scaleFloat = 0.5;
+            break;
+        default:
+            break;
+    }
+    return scaleFloat;
 }
 
 #pragma mark -- 返回
@@ -610,20 +930,21 @@ PLSAVAssetExportSessionDelegate
 
 #pragma mark -- 下一步
 - (void)nextButtonClick {
-    [self.shortVideoEditor.player pause];
-    [self.shortVideoEditor.audioPlayer pause];
-    
+    [self.shortVideoEditor stopEditing];
+
     [self loadActivityIndicatorView];
-    
-    self.movieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:self.shortVideoEditor.player.volume];
-    self.audioSettings[PLSVolumeKey] = [NSNumber numberWithFloat:self.shortVideoEditor.audioPlayer.volume];
+
     AVAsset *asset = self.movieSettings[PLSAssetKey];
     PLSAVAssetExportSession *exportSession = [[PLSAVAssetExportSession alloc] initWithAsset:asset];
-    exportSession.outputFileType = AVFileTypeMPEG4;
+    exportSession.outputFileType = PLSFileTypeMPEG4;
     exportSession.shouldOptimizeForNetworkUse = YES;
     exportSession.outputSettings = self.outputSettings;
     exportSession.delegate = self;
-        
+    exportSession.isExportMovieToPhotosAlbum = YES;
+    // 设置视频的导出分辨率，会将原视频缩放
+    exportSession.outputVideoSize = self.videoSize;
+    [exportSession addFilter:self.colorImagePath];
+    [exportSession addMVLayerWithColor:self.colorURL alpha:self.alphaURL];
     [exportSession exportAsynchronously];
     
     __weak typeof(self) weakSelf = self;
@@ -632,7 +953,7 @@ PLSAVAssetExportSessionDelegate
         NSLog(@"Asset Export Completed");
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [weakSelf joinNextViewController:url object:weakSelf];
+            [weakSelf joinNextViewController:url];
         });
     }];
     
@@ -650,52 +971,44 @@ PLSAVAssetExportSessionDelegate
         weakSelf.progressLabel.text = [NSString stringWithFormat:@"%d%%", (int)(progress * 100)];
     }];
 }
+    
+#pragma mark -- 进入 Gif 制作页面
+- (void)joinGifFormatViewController {
+    AVAsset *asset = self.movieSettings[PLSAssetKey];
+
+    GifFormatViewController *gifFormatViewController = [[GifFormatViewController alloc] init];
+    gifFormatViewController.asset = asset;
+    [self presentViewController:gifFormatViewController animated:YES completion:nil];
+}
 
 #pragma mark -- 完成视频合成跳转到下一页面
-- (void)joinNextViewController:(NSURL *)url object:(id)obj {
-    [obj removeActivityIndicatorView];
+- (void)joinNextViewController:(NSURL *)url {
+    [self removeActivityIndicatorView];
     
-    playViewController = [[PlayViewController alloc] init];
+    PlayViewController *playViewController = [[PlayViewController alloc] init];
     playViewController.url = url;
-    [obj presentViewController:playViewController animated:YES completion:nil];
+    [self presentViewController:playViewController animated:YES completion:nil];
 }
 
-#pragma mark -- PlaybackTimeCheckerTimer
-- (void)startPlaybackTimeChecker {
-    [self stopPlaybackTimeChecker];
-    
-    self.moviePlayTimeCheckerTimer = [NSTimer scheduledTimerWithTimeInterval:0.1f target:self selector:@selector(onPlaybackTimeCheckerTimer) userInfo:nil repeats:YES];
+#pragma mark -- 程序的状态监听
+- (void)observerUIApplicationStatusForShortVideoEditor {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shortVideoEditorWillResignActiveEvent:) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(shortVideoEditorDidBecomeActiveEvent:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
-- (void)stopPlaybackTimeChecker {
-    if (self.moviePlayTimeCheckerTimer) {
-        [self.moviePlayTimeCheckerTimer invalidate];
-        self.moviePlayTimeCheckerTimer = nil;
-    }
+- (void)removeObserverUIApplicationStatusForShortVideoEditor {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
-- (void)onPlaybackTimeCheckerTimer {
-    CMTime curTime = [self.shortVideoEditor.player currentTime];
-    Float64 seconds = CMTimeGetSeconds(curTime);
-    if (seconds < 0){
-        seconds = 0; // this happens! dont know why.
-    }
-    self.movieCurrentTime = seconds;
-    
-    CGFloat startTime =  [self.movieSettings[PLSStartTimeKey] floatValue];
-    CGFloat endTime = startTime + [self.movieSettings[PLSDurationKey] floatValue];
-    
-    if (self.movieCurrentTime >= endTime) {
-        self.movieCurrentTime = startTime;
-        [self seekVideoToPos:startTime];
-    }
+- (void)shortVideoEditorWillResignActiveEvent:(id)sender {
+    NSLog(@"[self.shortVideoEditor UIApplicationWillResignActiveNotification]");
+    [self.shortVideoEditor stopEditing];
 }
 
-- (void)seekVideoToPos:(CGFloat)pos {
-    self.movieCurrentTime = pos;
-    CMTime time = CMTimeMakeWithSeconds(self.movieCurrentTime, self.shortVideoEditor.player.currentTime.timescale);
-    NSLog(@"seekVideoToPos time:%.2f", CMTimeGetSeconds(time));
-    [self.shortVideoEditor.player seekToTime:time toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+- (void)shortVideoEditorDidBecomeActiveEvent:(id)sender {
+    NSLog(@"[self.shortVideoEditor UIApplicationDidBecomeActiveNotification]");
+    [self.shortVideoEditor startEditing];
 }
 
 #pragma mark -- 隐藏状态栏
@@ -705,27 +1018,23 @@ PLSAVAssetExportSessionDelegate
 
 #pragma mark -- dealloc
 - (void)dealloc {
-    self.shortVideoEditor.player.delegate = nil;
-    self.shortVideoEditor.player = nil;
+    self.shortVideoEditor.delegate = nil;
+    self.shortVideoEditor = nil;
+    
+    self.reverser = nil;
 
-    self.editVideoCollectionView.dataSource = nil;
-    self.editVideoCollectionView.delegate = nil;
-    self.editVideoCollectionView = nil;
+    self.editCollectionView.dataSource = nil;
+    self.editCollectionView.delegate = nil;
+    self.editCollectionView = nil;
     self.filtersArray = nil;
-    
-    self.musicCollectionView.dataSource = nil;
-    self.musicCollectionView.delegate = nil;
-    self.musicCollectionView = nil;
     self.musicsArray = nil;
-    
-    playViewController = nil;
     
     if ([self.activityIndicatorView isAnimating]) {
         [self.activityIndicatorView stopAnimating];
         self.activityIndicatorView = nil;
     }
     
-    [self stopPlaybackTimeChecker];
+    NSLog(@"dealloc: %@", [[self class] description]);
 }
 
 @end

@@ -12,7 +12,6 @@
 #import "PLSVideoConfiguration.h"
 #import "PLSAudioConfiguration.h"
 #import "PLSTypeDefines.h"
-#import "PLSFile.h"
 
 @class PLShortVideoRecorder;
 @protocol PLShortVideoRecorderDelegate <NSObject>
@@ -32,6 +31,14 @@
  @since      v1.0.0
  */
 - (void)shortVideoRecorder:(PLShortVideoRecorder *__nonnull)recorder didGetMicrophoneAuthorizationStatus:(PLSAuthorizationStatus)status;
+
+#pragma mark -- 摄像头对焦位置的回调
+/**
+ @abstract 摄像头对焦位置的回调
+
+ @since      v1.6.0
+ */
+- (void)shortVideoRecorderDidFocusAtPoint:(CGPoint)point;
 
 #pragma mark -- 摄像头／麦克风采集数据的回调
 /**
@@ -131,10 +138,30 @@
 @property (strong, nonatomic, readonly) PLSAudioConfiguration *__nonnull audioConfiguration;
 
 /**
- * @abstract 摄像头的预览视图
- *
+ @brief 摄像头的预览视图
+ 
+ @since      v1.0.0
  */
 @property (strong, nonatomic, readonly) UIView *__nullable previewView;
+
+/**
+ @brief 根据设备的方向自动确定竖屏、横屏拍摄。默认为 NO，不启用自动确定
+ 
+ @since      v1.3.0
+ */
+@property (assign, nonatomic) BOOL adaptationRecording;
+
+/**
+ @brief 当 adaptationRecording 为YES时，获取设备方向的回调 deviceOrientationBlock 才有效。
+        拍摄时可根据 deviceOrientation 做 UI 效果来标明当前拍摄的方向是竖屏还是横屏。
+        PLSPreviewOrientationPortrait           竖屏拍摄
+        PLSPreviewOrientationPortraitUpsideDown 倒立拍摄
+        PLSPreviewOrientationLandscapeRight     右横屏拍摄
+        PLSPreviewOrientationLandscapeLeft      左横屏拍摄
+ 
+ @since      v1.3.0
+ */
+@property (copy, nonatomic) void(^ _Nullable deviceOrientationBlock)(PLSPreviewOrientation deviceOrientation);
 
 /**
  @brief 代理对象
@@ -179,11 +206,28 @@
 @property (assign, nonatomic, readonly) BOOL captureEnabled;
 
 /**
+ @brief 视频拍摄速率值，默认使用 PLSVideoRecoderRateNormal，isRecording 为 YES 时，设置该值无效
+ 
+ @since      v1.4.0
+ */
+@property (readwrite, nonatomic) PLSVideoRecoderRateType recoderRate;
+
+/**
+ @brief 视频的文件类型，默认为 PLSFileTypeMPEG4(.mp4)
+ 
+ @since      v1.6.0
+ */
+@property (assign, nonatomic) PLSFileType outputFileType;
+
+/**
  @abstract   初始化方法
  
  @since      v1.0.0
+ 
+ @discussion videoConfiguration 设置为 nil 时，不采集视频。
+             audioConfiguration 设置为 nil 时，不采集音频。
  */
-- (nonnull instancetype)initWithVideoConfiguration:(PLSVideoConfiguration *__nonnull)videoConfiguration audioConfiguration:(PLSAudioConfiguration *__nonnull)audioConfiguration;
+- (nonnull instancetype)initWithVideoConfiguration:(PLSVideoConfiguration *_Nullable)videoConfiguration audioConfiguration:(PLSAudioConfiguration *_Nullable)audioConfiguration;
 
 /**
  @abstract   初始化方法
@@ -291,6 +335,25 @@
 
 @end
 
+#pragma mark - Category (Dubber)
+
+/**
+ @category   PLShortVideoRecorder (Dubber)
+ @abstract   视频配音
+ 
+ @since      v1.6.0
+ */
+@interface PLShortVideoRecorder (Dubber)
+
+/**
+ @brief 纯音频录制时，将录制的纯音频 AVAsset *audio = [self.recorder assetRepresentingAllFiles] 与 asset 混合。
+ 
+ @since      v1.6.0
+ */
+- (AVAsset *_Nullable)mixAsset:(AVAsset *_Nullable)asset timeRange:(CMTimeRange)timeRange;
+
+@end
+
 #pragma mark - Category (CameraSource)
 
 /**
@@ -322,6 +385,14 @@
  @since      v1.0.0
 */
 @property (assign, nonatomic, getter=isTorchOn) BOOL torchOn;
+
+/**
+ @property  continuousAutofocusEnable
+ @abstract  手动对焦的视图动画。该属性默认开启。
+ 
+ @since      v1.6.0
+ */
+@property (assign, nonatomic) BOOL innerFocusViewShowEnable;
 
 /**
  @property  continuousAutofocusEnable
@@ -402,28 +473,28 @@
 @property (assign, nonatomic) BOOL previewMirrorRearFacing;
 
 /**
- *  前置摄像头，推的流是否开启镜像，默认 NO
+ *  前置摄像头，编码写入文件时是否开启镜像，默认 NO
  
  @since      v1.0.0
  */
 @property (assign, nonatomic) BOOL streamMirrorFrontFacing;
 
 /**
- *  后置摄像头，推的流是否开启镜像，默认 NO
+ *  后置摄像头，编码写入文件时是否开启镜像，默认 NO
  
  @since      v1.0.0
  */
 @property (assign, nonatomic) BOOL streamMirrorRearFacing;
 
 /**
- *  推流预览的渲染队列
+ *  预览的渲染队列
  
  @since      v1.0.0
  */
 @property (strong, nonatomic, readonly) dispatch_queue_t __nonnull renderQueue;
 
 /**
- *  推流预览的渲染 OpenGL context
+ *  预览的渲染 OpenGL context
  
  @since      v1.0.0
  */

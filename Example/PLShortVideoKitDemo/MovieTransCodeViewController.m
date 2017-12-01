@@ -143,7 +143,8 @@ PLSSelectionViewDelegate
 }
 
 - (void)setupClipMovieView {
-    self.clipMovieView = [[PLSClipMovieView alloc] initWithMovieURL:self.url minDuration:2.0f maxDuration:180.f];
+    CGFloat duration = [self getFileDuration:self.url];
+    self.clipMovieView = [[PLSClipMovieView alloc] initWithMovieURL:self.url minDuration:2.0f maxDuration:duration];
     self.clipMovieView.delegate = self;
     [self.view addSubview:self.clipMovieView];
     [self.clipMovieView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -152,7 +153,7 @@ PLSSelectionViewDelegate
     }];
 }
 
-// 加载拼接视频的动画
+// 加载视频转码的动画
 - (void)loadActivityIndicatorView {
     if ([self.activityIndicatorView isAnimating]) {
         [self.activityIndicatorView stopAnimating];
@@ -163,7 +164,7 @@ PLSSelectionViewDelegate
     [self.activityIndicatorView startAnimating];
 }
 
-// 移除拼接视频的动画
+// 移除视频转码的动画
 - (void)removeActivityIndicatorView {
     [self.activityIndicatorView removeFromSuperview];
     [self.activityIndicatorView stopAnimating];
@@ -312,6 +313,17 @@ PLSSelectionViewDelegate
     return [[NSData dataWithContentsOfURL:url] length] / 1024.00 / 1024.00;
 }
 
+#pragma mark -- 获取视频／音频文件的总时长
+- (CGFloat)getFileDuration:(NSURL*)URL {
+    NSDictionary *opts = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:NO] forKey:AVURLAssetPreferPreciseDurationAndTimingKey];
+    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:URL options:opts];
+    
+    CMTime duration = asset.duration;
+    float durationSeconds = CMTimeGetSeconds(duration);
+    
+    return durationSeconds;
+}
+
 #pragma mark -- 隐藏状态栏
 - (BOOL)prefersStatusBarHidden {
     return YES;
@@ -336,6 +348,8 @@ PLSSelectionViewDelegate
     self.playerItem = nil;
     
     self.shortVideoTranscoder = nil;
+    
+    NSLog(@"dealloc: %@", [[self class] description]);
 }
 
 @end
