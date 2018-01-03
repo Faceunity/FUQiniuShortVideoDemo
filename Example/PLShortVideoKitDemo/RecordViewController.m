@@ -26,6 +26,7 @@
 
 #import "FUManager.h"
 #import <FUAPIDemoBar/FUAPIDemoBar.h>
+#import "FUItemsView.h"
 
 
 #define PLS_CLOSE_CONTROLLER_ALERTVIEW_TAG 10001
@@ -47,7 +48,8 @@ UICollectionViewDelegateFlowLayout,
 PLSViewRecorderManagerDelegate,
 PLSRateButtonViewDelegate,
 
-FUAPIDemoBarDelegate
+FUAPIDemoBarDelegate,
+FUItemsViewDelegate
 >
 
 @property (strong, nonatomic) PLSVideoConfiguration *videoConfiguration;
@@ -92,10 +94,14 @@ FUAPIDemoBarDelegate
 
 
 @property (nonatomic, strong) FUAPIDemoBar *demoBar ;
+@property (nonatomic, strong) FUItemsView *itemsBar ;
 @end
 
 @implementation RecordViewController
-
+{
+    UIButton *filterBtn ;
+    UIButton *itemsBtn ;
+}
 - (instancetype)init {
     self = [super init];
     if (self) {
@@ -130,6 +136,8 @@ FUAPIDemoBarDelegate
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    self.view.backgroundColor = [UIColor redColor];
+    
     [self setUpEasyarSDKARButton];
 
     // --------------------------
@@ -139,42 +147,296 @@ FUAPIDemoBarDelegate
     
     /**** FaceUnity 类 ****/
     [[FUManager shareManager] loadItems];
+    
+    [self addFUBtn];
     [self.view addSubview:self.demoBar];
+    [self.view addSubview:self.itemsBar];
+    
+    [self isShowBtnsUI];
+    /**** FaceUnity 类 ****/
+}
+
+- (void)isShowBtnsUI {
+    BOOL show = !filterBtn.selected && itemsBtn.selected ;
+    
+    self.rateButtonView.hidden = !show ;
+    self.recordButton.hidden = !show ;
+    self.importMovieView.hidden = !show ;
+    self.durationLabel.hidden = !show ;
+}
+
+- (void)addFUBtn {
+    filterBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    filterBtn.frame = CGRectMake(self.view.frame.size.width - 64, self.view.frame.size.height - 268, 60, 60) ;
+    [filterBtn setImage:[UIImage imageNamed:@"camera_btn_filter_normal"] forState:UIControlStateNormal];
+    [filterBtn addTarget:self action:@selector(showFilter:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:filterBtn];
+    
+    itemsBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    itemsBtn.frame = CGRectMake(4, self.view.frame.size.height - 268, 60, 60) ;
+    [itemsBtn setImage:[UIImage imageNamed:@"avatar"] forState:UIControlStateNormal];
+    [itemsBtn addTarget:self action:@selector(showItemsBar:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:itemsBtn];
+}
+
+- (void)showFilter:(UIButton *)sender {
+    
+    if (!itemsBtn.selected) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.itemsBar.transform = CGAffineTransformMakeTranslation(0, self.itemsBar.frame.size.height) ;
+        }completion:^(BOOL finished) {
+            itemsBtn.selected = YES ;
+        }];
+    }
+    
+    filterBtn.selected = !filterBtn.selected ;
+    
+    if (filterBtn.selected) {
+        [self isShowBtnsUI];
+        [UIView animateWithDuration:0.5 animations:^{
+            self.demoBar.transform = CGAffineTransformMakeTranslation(0, -self.demoBar.frame.size.height) ;
+        }];
+    }else {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.demoBar.transform = CGAffineTransformIdentity ;
+        }completion:^(BOOL finished) {
+            [self isShowBtnsUI];
+        }];
+    }
+}
+
+- (void)showItemsBar:(UIButton *)sender {
+    
+    if (filterBtn.selected) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.demoBar.transform = CGAffineTransformIdentity ;
+        }completion:^(BOOL finished) {
+            filterBtn.selected = NO ;
+        }];
+    }
+    
+    itemsBtn.selected = !itemsBtn.selected ;
+    if (itemsBtn.selected) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.itemsBar.transform = CGAffineTransformMakeTranslation(0, self.itemsBar.frame.size.height) ;
+        } completion:^(BOOL finished) {
+            [self isShowBtnsUI];
+        }];
+    }else {
+        [self isShowBtnsUI];
+        [UIView animateWithDuration:0.5 animations:^{
+            self.itemsBar.transform = CGAffineTransformIdentity ;
+        }];
+    }
+}
+
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesBegan:touches withEvent:event];
+    
 }
 
 /**
- Faceunity道具美颜工具条
- 初始化 FUAPIDemoBar，设置初始美颜参数
+ *  Faceunity美颜工具条
+ *  初始化 FUAPIDemoBar，设置初始美颜参数
  
- @param demoBar FUAPIDemoBar不是我们的交付内容，它的作用仅局限于我们的Demo演示，客户可以选择使用，但我们不会提供与之相关的技术支持或定制需求开发
+ *  FUAPIDemoBar不是我们的交付内容，它的作用仅局限于我们的Demo演示，客户可以选择使用，但我们不会提供与之相关的技术支持或定制需求开发
  */
 -(FUAPIDemoBar *)demoBar {
     if (!_demoBar) {
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, 260, self.view.frame.size.width, 208)];
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height, self.view.frame.size.width, 208)];
+        
+        _demoBar.selectedBlur = [FUManager shareManager].selectedBlur;
+        
+        _demoBar.beautyLevel = [FUManager shareManager].beautyLevel;
+        
+        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel;
+        
+        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel;
+        
+        _demoBar.redLevel = [FUManager shareManager].redLevel;
+        
+        _demoBar.faceShape = [FUManager shareManager].faceShape;
+        
+        _demoBar.faceShapeLevel = [FUManager shareManager].faceShapeLevel;
+        
         _demoBar.delegate = self;
-        
-        _demoBar.itemsDataSource =  [FUManager shareManager].itemsDataSource;
-        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource;
-        
-        _demoBar.selectedItem = [FUManager shareManager].selectedItem;      /**选中的道具名称*/
-        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter;  /**选中的滤镜名称*/
-        _demoBar.beautyLevel = [FUManager shareManager].beautyLevel;        /**美白 (0~1)*/
-        _demoBar.redLevel = [FUManager shareManager].redLevel;              /**红润 (0~1)*/
-        _demoBar.selectedBlur = [FUManager shareManager].selectedBlur;      /**磨皮(0、1、2、3、4、5、6)*/
-        _demoBar.faceShape = [FUManager shareManager].faceShape;            /**美型类型 (0、1、2、3) 默认：3，女神：0，网红：1，自然：2*/
-        _demoBar.faceShapeLevel = [FUManager shareManager].faceShapeLevel;  /**美型等级 (0~1)*/
-        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel;  /**大眼 (0~1)*/
-        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel;    /**瘦脸 (0~1)*/
     }
     return _demoBar ;
 }
 
-#pragma -FUAPIDemoBarDelegate
-- (void)demoBarDidSelectedItem:(NSString *)item
-{
-    //加载道具
-    [[FUManager shareManager] loadItem:item];
+/**
+ *  Faceunity 道具展示UI
+ *  初始化 FUItemsView，设置初始美颜参数
+ *
+ *  FUItemsView 为自定义UI ，不提供技术支持和需求定制。
+ *  FUItemsView 不是我们的交付内容，它的作用仅局限于我们的Demo演示，客户可以选择使用，但我们不会提供与之相关的技术支持或定制需求开发
+ */
+-(FUItemsView *)itemsBar {
+    if (!_itemsBar) {
+        _itemsBar = [[FUItemsView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 110, self.view.frame.size.width, 110)];
+        _itemsBar.delegate = self ;
+        
+        NSMutableArray *itemsArray = [NSMutableArray arrayWithCapacity:1];
+        
+        for (int i = 1; i < 8; i ++) {
+            
+            BottomModel *model = [[BottomModel alloc] init];
+            model.isSelected = i == 0 ;
+            
+            NSMutableArray *topArry = [NSMutableArray arrayWithCapacity:1];
+            
+            switch (i) {
+                case 1:{
+                    model.itemName = @"3D道具" ;
+                    model.isSelected = YES ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = YES ;
+                    topModel0.itemName = @"sdx2" ;
+                    [topArry addObject:topModel0];
+                    
+                    TopModel *topModel1 = [[TopModel alloc] init];
+                    topModel1.isSelected = NO ;
+                    topModel1.itemName = @"itD" ;
+                    [topArry addObject:topModel1];
+                }
+                    break;
+                case 2:{
+                    model.itemName = @"2D道具" ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = NO ;
+                    topModel0.itemName = @"caituzi_zh_fu" ;
+                    [topArry addObject:topModel0];
+                    
+                    TopModel *topModel1 = [[TopModel alloc] init];
+                    topModel1.isSelected = NO ;
+                    topModel1.itemName = @"lhudie_zh_fu" ;
+                    [topArry addObject:topModel1];
+                }
+                    break;
+                case 3:{
+                    model.itemName = @"换脸" ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = NO ;
+                    topModel0.itemName = @"afd" ;
+                    [topArry addObject:topModel0];
+                    
+                    TopModel *topModel1 = [[TopModel alloc] init];
+                    topModel1.isSelected = NO ;
+                    topModel1.itemName = @"baozi" ;
+                    [topArry addObject:topModel1];
+                }
+                    break;
+                case 4:{
+                    model.itemName = @"Avatar" ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = NO ;
+                    topModel0.itemName = @"nick" ;
+                    [topArry addObject:topModel0];
+                }
+                    break;
+                case 5:{
+                    model.itemName = @"魔幻背景" ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = NO ;
+                    topModel0.itemName = @"hez_ztt_fu" ;
+                    [topArry addObject:topModel0];
+                    
+                    TopModel *topModel1 = [[TopModel alloc] init];
+                    topModel1.isSelected = NO ;
+                    topModel1.itemName = @"xiandai_ztt_fu" ;
+                    [topArry addObject:topModel1];
+                }
+                    break;
+                case 6:{
+                    model.itemName = @"手势识别" ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = NO ;
+                    topModel0.itemName = @"fu_ztt_live520" ;
+                    [topArry addObject:topModel0];
+                    
+                    TopModel *topModel1 = [[TopModel alloc] init];
+                    topModel1.isSelected = NO ;
+                    topModel1.itemName = @"fu_zh_baoquan" ;
+                    [topArry addObject:topModel1];
+                }
+                    break;
+                case 7:{
+                    model.itemName = @"滤镜" ;
+                    
+                    TopModel *topModel00 = [[TopModel alloc] init];
+                    topModel00.isSelected = NO ;
+                    topModel00.itemName = @"noitem" ;
+                    [topArry addObject:topModel00];
+                    
+                    TopModel *topModel0 = [[TopModel alloc] init];
+                    topModel0.isSelected = NO ;
+                    topModel0.itemName = @"gradient" ;
+                    [topArry addObject:topModel0];
+                    
+                    TopModel *topModel1 = [[TopModel alloc] init];
+                    topModel1.isSelected = NO ;
+                    topModel1.itemName = @"movie" ;
+                    [topArry addObject:topModel1];
+                }
+                    break;
+                default:
+                    break;
+            }
+            
+            model.topsArray = topArry ;
+            
+            [itemsArray addObject:model];
+        }
+        
+        _itemsBar.dataArray = [itemsArray copy];
+    }
+    return _itemsBar ;
 }
+#pragma mark ---- FUItemsViewDelegate
+
+- (void)FUItemsViewDidSelecItem:(NSString *)itemName {
+    NSLog(@"select item : %@", itemName);
+    //加载道具
+    [[FUManager shareManager] loadItem:itemName];
+}
+
+#pragma -FUAPIDemoBarDelegate
 
 /**设置美颜参数*/
 - (void)demoBarBeautyParamChanged

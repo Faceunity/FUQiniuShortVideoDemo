@@ -42,10 +42,6 @@ static FUManager *shareManager = NULL;
          还有设置为YES,则需要调用FURenderer.h中的接口，不能再调用funama.h中的接口。*/
         [[FURenderer shareRenderer] setupWithDataPath:path authPackage:&g_auth_package authSize:sizeof(g_auth_package) shouldCreateContext:YES];
         
-        /*设置贴纸和美颜的默认参数*/
-        self.itemsDataSource = @[@"noitem", @"EatRabbi", @"yuguan", @"yazui", @"mask_matianyu", @"lixiaolong", @"Mood"];
-        self.filtersDataSource = @[@"nature", @"delta", @"electric", @"slowlived", @"tokyo", @"warm"];
-        
         // 美颜的默认参数
         [self setDefaultBeautyParameters];
     }
@@ -56,7 +52,7 @@ static FUManager *shareManager = NULL;
 - (void)loadItems
 {
     /**加载普通道具*/
-    [self loadItem:self.selectedItem];
+    [self loadItem:@"sdx2"];
     
     /**加载美颜道具*/
     [self loadFilter];
