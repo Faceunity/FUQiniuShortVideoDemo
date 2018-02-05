@@ -18,15 +18,10 @@
 #import "PLSViewRecorderManager.h"
 #import "PLSRateButtonView.h"
 
-#import "FaceTracker.h"
-#import "KWRenderManager.h"
-#import "Global.h"
-#import "KWUIManager.h"
 #import "EasyarARViewController.h"
 
 #import "FUManager.h"
 #import <FUAPIDemoBar/FUAPIDemoBar.h>
-#import "FUItemsView.h"
 
 
 #define PLS_CLOSE_CONTROLLER_ALERTVIEW_TAG 10001
@@ -42,14 +37,10 @@
 @interface RecordViewController ()
 <
 PLShortVideoRecorderDelegate,
-UICollectionViewDelegate,
-UICollectionViewDataSource,
-UICollectionViewDelegateFlowLayout,
 PLSViewRecorderManagerDelegate,
 PLSRateButtonViewDelegate,
 
-FUAPIDemoBarDelegate,
-FUItemsViewDelegate
+FUAPIDemoBarDelegate
 >
 
 @property (strong, nonatomic) PLSVideoConfiguration *videoConfiguration;
@@ -75,33 +66,38 @@ FUItemsViewDelegate
 @property (strong, nonatomic) UIView *importMovieView;
 @property (strong, nonatomic) UIButton *importMovieButton;
 
+// 录制的视频文件的存储路径设置
+@property (strong, nonatomic) UIButton *filePathButton;
+@property (assign, nonatomic) BOOL useSDKInternalPath;
+
 // 录制时是否使用滤镜
 @property (assign, nonatomic) BOOL isUseFilterWhenRecording;
 
 // 所有滤镜
 @property (strong, nonatomic) PLSFilterGroup *filterGroup;
-// 展示所有滤镜的集合视图
-@property (strong, nonatomic) UICollectionView *editVideoCollectionView;
-@property (strong, nonatomic) NSMutableArray<NSDictionary *> *filtersArray;
-@property (assign, nonatomic) NSInteger filterIndex;
+
+@property (strong, nonatomic) UIButton *draftButton;
+@property (strong, nonatomic) NSURL *URL;
+
+@property (strong, nonatomic) UIButton *musicButton;
+@property (strong, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 
 // 录制前是否开启自动检测设备方向调整视频拍摄的角度（竖屏、横屏）
 @property (assign, nonatomic) BOOL isUseAutoCheckDeviceOrientationBeforeRecording;
 
-@property (nonatomic, strong) KWUIManager *UIManager;
-@property (nonatomic, strong) KWRenderManager *renderManager;
 @property (nonatomic, copy) NSString *modelPath;
 
 
+
+/****---- FaceUnity ----****/
+
 @property (nonatomic, strong) FUAPIDemoBar *demoBar ;
-@property (nonatomic, strong) FUItemsView *itemsBar ;
+
+/****---- FaceUnity ----****/
 @end
 
 @implementation RecordViewController
-{
-    UIButton *filterBtn ;
-    UIButton *itemsBtn ;
-}
+
 - (instancetype)init {
     self = [super init];
     if (self) {
@@ -130,109 +126,48 @@ FUItemsViewDelegate
     // --------------------------
     [self setupBaseToolboxView];
     [self setupRecordToolboxView];
+    
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
     
-    self.view.backgroundColor = [UIColor redColor];
+    /****---- FaceUnity ----****/
     
-    [self setUpEasyarSDKARButton];
-
-    // --------------------------
-    [self setupRenderManager];
-    [self setupKiwiFaceUI];
-    // --------------------------
-    
-    /**** FaceUnity 类 ****/
     [[FUManager shareManager] loadItems];
     
-    [self addFUBtn];
+    [self addFaceUnityUI];
+    
+    /****---- FaceUnity ----****/
+}
+
+/****---- 以下 FaceUnity ----****/
+
+- (void)addFaceUnityUI {
+    
     [self.view addSubview:self.demoBar];
-    [self.view addSubview:self.itemsBar];
     
-    [self isShowBtnsUI];
-    /**** FaceUnity 类 ****/
-}
-
-- (void)isShowBtnsUI {
-    BOOL show = !filterBtn.selected && itemsBtn.selected ;
-    
-    self.rateButtonView.hidden = !show ;
-    self.recordButton.hidden = !show ;
-    self.importMovieView.hidden = !show ;
-    self.durationLabel.hidden = !show ;
-}
-
-- (void)addFUBtn {
-    filterBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    filterBtn.frame = CGRectMake(self.view.frame.size.width - 64, self.view.frame.size.height - 268, 60, 60) ;
+    UIButton *filterBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    filterBtn.frame = CGRectMake(16, self.view.frame.size.height - 280, 55, 55) ;
     [filterBtn setImage:[UIImage imageNamed:@"camera_btn_filter_normal"] forState:UIControlStateNormal];
-    [filterBtn addTarget:self action:@selector(showFilter:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:filterBtn];
-    
-    itemsBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    itemsBtn.frame = CGRectMake(4, self.view.frame.size.height - 268, 60, 60) ;
-    [itemsBtn setImage:[UIImage imageNamed:@"avatar"] forState:UIControlStateNormal];
-    [itemsBtn addTarget:self action:@selector(showItemsBar:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:itemsBtn];
+    [filterBtn addTarget:self action:@selector(showDemoBar:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:filterBtn ];
 }
 
-- (void)showFilter:(UIButton *)sender {
-    
-    if (!itemsBtn.selected) {
-        [UIView animateWithDuration:0.5 animations:^{
-            self.itemsBar.transform = CGAffineTransformMakeTranslation(0, self.itemsBar.frame.size.height) ;
-        }completion:^(BOOL finished) {
-            itemsBtn.selected = YES ;
-        }];
-    }
-    
-    filterBtn.selected = !filterBtn.selected ;
-    
-    if (filterBtn.selected) {
-        [self isShowBtnsUI];
-        [UIView animateWithDuration:0.5 animations:^{
-            self.demoBar.transform = CGAffineTransformMakeTranslation(0, -self.demoBar.frame.size.height) ;
+- (void)showDemoBar:(UIButton *)sender
+{
+    sender.selected = !sender.selected ;
+    if (sender.selected) {
+        [UIView animateWithDuration:0.4 animations:^{
+            self.demoBar.transform = CGAffineTransformMakeTranslation(0, self.demoBar.frame.size.height) ;
+            self.demoBar.alpha = 1.0 ;
         }];
     }else {
-        [UIView animateWithDuration:0.5 animations:^{
+        [UIView animateWithDuration:0.4 animations:^{
             self.demoBar.transform = CGAffineTransformIdentity ;
-        }completion:^(BOOL finished) {
-            [self isShowBtnsUI];
+            self.demoBar.alpha = 1.0 ;
         }];
     }
-}
-
-- (void)showItemsBar:(UIButton *)sender {
-    
-    if (filterBtn.selected) {
-        [UIView animateWithDuration:0.5 animations:^{
-            self.demoBar.transform = CGAffineTransformIdentity ;
-        }completion:^(BOOL finished) {
-            filterBtn.selected = NO ;
-        }];
-    }
-    
-    itemsBtn.selected = !itemsBtn.selected ;
-    if (itemsBtn.selected) {
-        [UIView animateWithDuration:0.5 animations:^{
-            self.itemsBar.transform = CGAffineTransformMakeTranslation(0, self.itemsBar.frame.size.height) ;
-        } completion:^(BOOL finished) {
-            [self isShowBtnsUI];
-        }];
-    }else {
-        [self isShowBtnsUI];
-        [UIView animateWithDuration:0.5 animations:^{
-            self.itemsBar.transform = CGAffineTransformIdentity ;
-        }];
-    }
-}
-
--(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [super touchesBegan:touches withEvent:event];
-    
 }
 
 /**
@@ -243,213 +178,57 @@ FUItemsViewDelegate
  */
 -(FUAPIDemoBar *)demoBar {
     if (!_demoBar) {
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height, self.view.frame.size.width, 208)];
-        
-        _demoBar.selectedBlur = [FUManager shareManager].selectedBlur;
-        
-        _demoBar.beautyLevel = [FUManager shareManager].beautyLevel;
-        
-        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel;
-        
-        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel;
-        
-        _demoBar.redLevel = [FUManager shareManager].redLevel;
-        
-        _demoBar.faceShape = [FUManager shareManager].faceShape;
-        
-        _demoBar.faceShapeLevel = [FUManager shareManager].faceShapeLevel;
-        
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 215, self.view.frame.size.width, 215)];
         _demoBar.delegate = self;
+        
+        _demoBar.itemsDataSource =  [FUManager shareManager].itemsDataSource;
+        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource;
+        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName;
+        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource;
+        
+        _demoBar.selectedItem = [FUManager shareManager].selectedItem;      /**选中的道具名称*/
+        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter;  /**选中的滤镜名称*/
+        _demoBar.whiteLevel = [FUManager shareManager].beautyLevel;        /**美白 (0~1)*/
+        _demoBar.redLevel = [FUManager shareManager].redLevel;              /**红润 (0~1)*/
+        _demoBar.selectedBlur = [FUManager shareManager].selectedBlur;      /**磨皮(0、1、2、3、4、5、6)*/
+        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;/**是否开启皮肤检测(YES/NO)*/
+        _demoBar.faceShape = [FUManager shareManager].faceShape;            /**美型类型 (0、1、2、3) 默认：3，女神：0，网红：1，自然：2*/
+        _demoBar.faceShapeLevel = [FUManager shareManager].faceShapeLevel;  /**美型等级 (0~1)*/
+        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel;  /**大眼 (0~1)*/
+        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel;    /**瘦脸 (0~1)*/
     }
     return _demoBar ;
 }
 
-/**
- *  Faceunity 道具展示UI
- *  初始化 FUItemsView，设置初始美颜参数
- *
- *  FUItemsView 为自定义UI ，不提供技术支持和需求定制。
- *  FUItemsView 不是我们的交付内容，它的作用仅局限于我们的Demo演示，客户可以选择使用，但我们不会提供与之相关的技术支持或定制需求开发
- */
--(FUItemsView *)itemsBar {
-    if (!_itemsBar) {
-        _itemsBar = [[FUItemsView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 110, self.view.frame.size.width, 110)];
-        _itemsBar.delegate = self ;
-        
-        NSMutableArray *itemsArray = [NSMutableArray arrayWithCapacity:1];
-        
-        for (int i = 1; i < 8; i ++) {
-            
-            BottomModel *model = [[BottomModel alloc] init];
-            model.isSelected = i == 0 ;
-            
-            NSMutableArray *topArry = [NSMutableArray arrayWithCapacity:1];
-            
-            switch (i) {
-                case 1:{
-                    model.itemName = @"3D道具" ;
-                    model.isSelected = YES ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = YES ;
-                    topModel0.itemName = @"sdx2" ;
-                    [topArry addObject:topModel0];
-                    
-                    TopModel *topModel1 = [[TopModel alloc] init];
-                    topModel1.isSelected = NO ;
-                    topModel1.itemName = @"itD" ;
-                    [topArry addObject:topModel1];
-                }
-                    break;
-                case 2:{
-                    model.itemName = @"2D道具" ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = NO ;
-                    topModel0.itemName = @"caituzi_zh_fu" ;
-                    [topArry addObject:topModel0];
-                    
-                    TopModel *topModel1 = [[TopModel alloc] init];
-                    topModel1.isSelected = NO ;
-                    topModel1.itemName = @"lhudie_zh_fu" ;
-                    [topArry addObject:topModel1];
-                }
-                    break;
-                case 3:{
-                    model.itemName = @"换脸" ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = NO ;
-                    topModel0.itemName = @"afd" ;
-                    [topArry addObject:topModel0];
-                    
-                    TopModel *topModel1 = [[TopModel alloc] init];
-                    topModel1.isSelected = NO ;
-                    topModel1.itemName = @"baozi" ;
-                    [topArry addObject:topModel1];
-                }
-                    break;
-                case 4:{
-                    model.itemName = @"Avatar" ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = NO ;
-                    topModel0.itemName = @"nick" ;
-                    [topArry addObject:topModel0];
-                }
-                    break;
-                case 5:{
-                    model.itemName = @"魔幻背景" ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = NO ;
-                    topModel0.itemName = @"hez_ztt_fu" ;
-                    [topArry addObject:topModel0];
-                    
-                    TopModel *topModel1 = [[TopModel alloc] init];
-                    topModel1.isSelected = NO ;
-                    topModel1.itemName = @"xiandai_ztt_fu" ;
-                    [topArry addObject:topModel1];
-                }
-                    break;
-                case 6:{
-                    model.itemName = @"手势识别" ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = NO ;
-                    topModel0.itemName = @"fu_ztt_live520" ;
-                    [topArry addObject:topModel0];
-                    
-                    TopModel *topModel1 = [[TopModel alloc] init];
-                    topModel1.isSelected = NO ;
-                    topModel1.itemName = @"fu_zh_baoquan" ;
-                    [topArry addObject:topModel1];
-                }
-                    break;
-                case 7:{
-                    model.itemName = @"滤镜" ;
-                    
-                    TopModel *topModel00 = [[TopModel alloc] init];
-                    topModel00.isSelected = NO ;
-                    topModel00.itemName = @"noitem" ;
-                    [topArry addObject:topModel00];
-                    
-                    TopModel *topModel0 = [[TopModel alloc] init];
-                    topModel0.isSelected = NO ;
-                    topModel0.itemName = @"gradient" ;
-                    [topArry addObject:topModel0];
-                    
-                    TopModel *topModel1 = [[TopModel alloc] init];
-                    topModel1.isSelected = NO ;
-                    topModel1.itemName = @"movie" ;
-                    [topArry addObject:topModel1];
-                }
-                    break;
-                default:
-                    break;
-            }
-            
-            model.topsArray = topArry ;
-            
-            [itemsArray addObject:model];
-        }
-        
-        _itemsBar.dataArray = [itemsArray copy];
-    }
-    return _itemsBar ;
-}
-#pragma mark ---- FUItemsViewDelegate
-
-- (void)FUItemsViewDidSelecItem:(NSString *)itemName {
-    NSLog(@"select item : %@", itemName);
-    //加载道具
-    [[FUManager shareManager] loadItem:itemName];
-}
-
 #pragma -FUAPIDemoBarDelegate
+- (void)demoBarDidSelectedItem:(NSString *)item
+{
+    //加载道具
+    [[FUManager shareManager] loadItem:item];
+}
 
 /**设置美颜参数*/
 - (void)demoBarBeautyParamChanged
 {
+    [self syncBeautyParams];
+}
+
+- (void)syncBeautyParams
+{
     [FUManager shareManager].selectedFilter = _demoBar.selectedFilter;
+    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
     [FUManager shareManager].selectedBlur = _demoBar.selectedBlur;
-    [FUManager shareManager].beautyLevel = _demoBar.beautyLevel;
+    [FUManager shareManager].skinDetectEnable = _demoBar.skinDetectEnable;
+    [FUManager shareManager].beautyLevel = _demoBar.whiteLevel;
     [FUManager shareManager].redLevel = _demoBar.redLevel;
     [FUManager shareManager].faceShape = _demoBar.faceShape;
     [FUManager shareManager].faceShapeLevel = _demoBar.faceShapeLevel;
     [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
     [FUManager shareManager].enlargingLevel = _demoBar.enlargingLevel;
 }
+
+/****---- 以上 FaceUnity ----****/
+
 
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -534,30 +313,9 @@ FUItemsViewDelegate
         }];
     }
     
-    // 默认关闭内部滤镜
-    if (self.isUseFilterWhenRecording) {
-        // 滤镜资源
-        self.filtersArray = [[NSMutableArray alloc] init];
-        for (NSDictionary *filterInfoDic in self.filterGroup.filtersInfo) {
-            NSString *name = [filterInfoDic objectForKey:@"name"];
-            NSString *coverImagePath = [filterInfoDic objectForKey:@"coverImagePath"];
-            
-            NSDictionary *dic = @{
-                                  @"name"            : name,
-                                  @"coverImagePath"  : coverImagePath
-                                  };
-            
-            [self.filtersArray addObject:dic];
-        }
-        
-        // 展示多种滤镜的 UICollectionView
-        CGRect frame = self.editVideoCollectionView.frame;
-        CGFloat y = self.baseToolboxView.frame.origin.y + self.baseToolboxView.frame.size.height + PLS_SCREEN_WIDTH;
-        self.editVideoCollectionView.frame = CGRectMake(0, y, frame.size.width, frame.size.height);
-        [self.view addSubview:self.editVideoCollectionView];
-        [self.editVideoCollectionView reloadData];
-        self.editVideoCollectionView.hidden = YES;
-    }
+    // 本地视频
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"video_draft_test" ofType:@"mp4"];
+    self.URL = [NSURL fileURLWithPath:filePath];
 }
 
 - (void)setupBaseToolboxView {
@@ -572,15 +330,6 @@ FUItemsViewDelegate
     [backButton setBackgroundImage:[UIImage imageNamed:@"btn_camera_cancel_b"] forState:UIControlStateHighlighted];
     [backButton addTarget:self action:@selector(backButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
     [self.baseToolboxView addSubview:backButton];
-    
-    // 七牛滤镜
-    UIButton *filterButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    filterButton.frame = CGRectMake(PLS_SCREEN_WIDTH - 310, 10, 35, 35);
-    [filterButton setTitle:@"滤镜" forState:UIControlStateNormal];
-    [filterButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    filterButton.titleLabel.font = [UIFont systemFontOfSize:14];
-    [filterButton addTarget:self action:@selector(filterButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
-    [self.baseToolboxView addSubview:filterButton];
     
     // 录屏按钮
     self.viewRecordButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -611,15 +360,6 @@ FUItemsViewDelegate
     [flashButton setBackgroundImage:[UIImage imageNamed:@"flash_open"] forState:UIControlStateSelected];
     [flashButton addTarget:self action:@selector(flashButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
     [self.baseToolboxView addSubview:flashButton];
-    
-    // 美颜
-    UIButton *beautyFaceButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    beautyFaceButton.frame = CGRectMake(PLS_SCREEN_WIDTH - 90, 10, 30, 30);
-    [beautyFaceButton setTitle:@"美颜" forState:UIControlStateNormal];
-    [beautyFaceButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    beautyFaceButton.titleLabel.font = [UIFont systemFontOfSize:14];
-    [beautyFaceButton addTarget:self action:@selector(beautyFaceButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
-    [self.baseToolboxView addSubview:beautyFaceButton];
     
     // 切换摄像头
     UIButton *toggleCameraButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -687,7 +427,7 @@ FUItemsViewDelegate
     
     self.durationLabel = [[UILabel alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH - 150, CGRectGetHeight(self.recordToolboxView.frame) - 45, 130, 40)];
     self.durationLabel.textColor = [UIColor whiteColor];
-    self.durationLabel.text = @"0.00s";
+    self.durationLabel.text = [NSString stringWithFormat:@"%.2fs", self.shortVideoRecorder.getTotalDuration];
     self.durationLabel.textAlignment = NSTextAlignmentRight;
     [self.recordToolboxView addSubview:self.durationLabel];
     
@@ -711,56 +451,6 @@ FUItemsViewDelegate
     importMovieLabel.textAlignment = NSTextAlignmentCenter;
     importMovieLabel.font = [UIFont systemFontOfSize:14.0];
     [self.importMovieView addSubview:importMovieLabel];
-}
-
-#pragma mark - 初始化KiwiFaceSDK
-- (void)setupRenderManager {
-    
-    // 1.创建 KWRenderManager对象,指定models文件路径 若不传则默认路径是KWResource.bundle/models
-    //    self.renderManager = [[KWRenderManager alloc] initWithModelPath:self.modelPath isCameraPositionBack:NO];
-    self.renderManager = [[KWRenderManager alloc] initWithModelPath:nil isCameraPositionBack:YES];
-    
-    // 2.KWSDK鉴权提示
-    if ([KWRenderManager renderInitCode] != 0) {
-        UIAlertView *alertView =
-        [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"KiwiFaceSDK初始化失败,错误码: %d", [KWRenderManager renderInitCode]] message:@"可在FaceTracker.h中查看错误码" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
-        
-        [alertView show];
-        
-        return;
-    }
-    
-    // 3.加载贴纸滤镜
-    [self.renderManager loadRender];
-    
-}
-
-#pragma mark -初始化KiwiFace的演示UI
-- (void)setupKiwiFaceUI{
-    // 1.初始化UIManager
-    self.UIManager = [[KWUIManager alloc] initWithRenderManager:self.renderManager delegate:self superView:self.view];
-    // 2.是否清除原UI
-    self.UIManager.isClearOldUI = NO;
-    
-    // 3.创建内置UI
-    [self.UIManager createUI];
-}
-
-#pragma mark - EasyarSDK AR 入口
-- (void)setUpEasyarSDKARButton {
-    UIButton *ARButton = [[UIButton alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH - 60, 243, 46, 46)];
-    ARButton.layer.cornerRadius = 23;
-    ARButton.backgroundColor = [UIColor colorWithRed:116/255 green:116/255 blue:116/255 alpha:0.55];
-    [ARButton setImage:[UIImage imageNamed:@"easyar_AR"] forState:UIControlStateNormal];
-    ARButton.imageEdgeInsets = UIEdgeInsetsMake(6, 6, 6, 6);
-    [ARButton addTarget:self action:@selector(ARButtonOnClick:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:ARButton];
-}
-
-- (void)ARButtonOnClick:(id)sender {
-    EasyarARViewController *easyerARViewController = [[EasyarARViewController alloc]init];
-    [easyerARViewController loadARID:@"287e6520eff14884be463d61efb40ba8"];
-    [self presentViewController:easyerARViewController animated:NO completion:nil];
 }
 
 #pragma mark -- Button event
@@ -875,24 +565,9 @@ FUItemsViewDelegate
     }
 }
 
-// 打开／关闭美颜
-- (void)beautyFaceButtonEvent:(id)sender {
-    UIButton *button = (UIButton *)sender;
-    
-    [self.shortVideoRecorder setBeautifyModeOn:!button.selected];
-    
-    button.selected = !button.selected;
-}
-
 // 切换前后置摄像头
 - (void)toggleCameraButtonEvent:(id)sender {
     [self.shortVideoRecorder toggleCamera];
-}
-
-// 七牛滤镜
-- (void)filterButtonEvent:(UIButton *)button {
-    button.selected = !button.selected;
-    self.editVideoCollectionView.hidden = !button.selected;
 }
 
 // 删除上一段视频
@@ -917,8 +592,39 @@ FUItemsViewDelegate
     if (self.shortVideoRecorder.isRecording) {
         [self.shortVideoRecorder stopRecording];
     } else {
-        [self.shortVideoRecorder startRecording];
+        if (self.useSDKInternalPath) {
+            // 方式1
+            // 录制的视频的存放地址由 SDK 内部自动生成
+             [self.shortVideoRecorder startRecording];
+        } else {
+            // 方式2
+            // fileURL 录制的视频的存放地址，该参数可以在外部设置，录制的视频会保存到该位置
+            [self.shortVideoRecorder startRecording:[self getFileURL]];
+        }
     }
+}
+
+- (NSURL *)getFileURL {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *path = [paths objectAtIndex:0];
+    
+    path = [path stringByAppendingPathComponent:@"TestPath"];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if(![fileManager fileExistsAtPath:path]) {
+        // 如果不存在,则说明是第一次运行这个程序，那么建立这个文件夹
+        [fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"yyyyMMddHHmmss";
+    NSString *nowTimeStr = [formatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0]];
+    
+    NSString *fileName = [[path stringByAppendingPathComponent:nowTimeStr] stringByAppendingString:@".mp4"];
+    
+    NSURL *fileURL = [NSURL fileURLWithPath:fileName];
+    
+    return fileURL;
 }
 
 // 结束录制
@@ -1043,56 +749,8 @@ FUItemsViewDelegate
 #pragma mark - PLShortVideoRecorderDelegate 摄像头采集的视频数据的回调
 /// @abstract 获取到摄像头原数据时的回调, 便于开发者做滤镜等处理，需要注意的是这个回调在 camera 数据的输出线程，请不要做过于耗时的操作，否则可能会导致帧率下降
 - (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
-    //此处可以做美颜/滤镜等处理
-    
-    /**  FaceUnity 效果接入  **/
     
     [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
-    
-    
-    
-    // 是否在录制时使用滤镜，默认是关闭的，NO
-    if (self.isUseFilterWhenRecording) {
-        PLSFilter *filter = self.filterGroup.currentFilter;
-        pixelBuffer = [filter process:pixelBuffer];
-    }
-    
-    
-    /* 横竖屏时更新sdk内置UI 坐标 */
-    [_UIManager resetScreemMode];
-    
-    
-    UIDeviceOrientation iDeviceOrientation = [[UIDevice currentDevice] orientation];
-    //    BOOL mirrored = !self.kwSdkUI.kwSdk.cameraPositionBack;
-    BOOL mirrored = NO;
-    
-    cv_rotate_type cvMobileRotate;
-    
-    switch (iDeviceOrientation) {
-        case UIDeviceOrientationPortrait:
-            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
-            break;
-            
-        case UIDeviceOrientationLandscapeLeft:
-            cvMobileRotate = mirrored ?  CV_CLOCKWISE_ROTATE_90: CV_CLOCKWISE_ROTATE_270;
-            break;
-            
-        case UIDeviceOrientationLandscapeRight:
-            cvMobileRotate = mirrored ? CV_CLOCKWISE_ROTATE_270 : CV_CLOCKWISE_ROTATE_90;
-            break;
-            
-        case UIDeviceOrientationPortraitUpsideDown:
-            cvMobileRotate = CV_CLOCKWISE_ROTATE_180;
-            break;
-            
-        default:
-            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
-            break;
-    }
-    
-    /*********** 视频帧渲染 ***********/
-    [KWRenderManager processPixelBuffer:pixelBuffer];
-    
     return pixelBuffer;
 }
 
@@ -1116,6 +774,8 @@ FUItemsViewDelegate
     self.deleteButton.hidden = YES;
     self.endButton.hidden = YES;
     self.importMovieView.hidden = YES;
+    self.musicButton.hidden = YES;
+    self.filePathButton.hidden = YES;
     
     self.durationLabel.text = [NSString stringWithFormat:@"%.2fs", totalDuration];
 }
@@ -1131,7 +791,13 @@ FUItemsViewDelegate
         self.deleteButton.hidden = YES;
         self.endButton.hidden = YES;
         self.importMovieView.hidden = NO;
+        self.musicButton.hidden = NO;
+        self.filePathButton.hidden = NO;
     }
+    
+    AVAsset *asset = [AVAsset assetWithURL:_URL];
+    CGFloat duration = CMTimeGetSeconds(asset.duration);
+    self.draftButton.hidden = (totalDuration +  duration) >= self.shortVideoRecorder.maxDuration;
 
     self.durationLabel.text = [NSString stringWithFormat:@"%.2fs", totalDuration];
 }
@@ -1145,6 +811,9 @@ FUItemsViewDelegate
     self.deleteButton.hidden = NO;
     self.endButton.hidden = NO;
 
+    AVAsset *asset = [AVAsset assetWithURL:_URL];
+    CGFloat duration = CMTimeGetSeconds(asset.duration);
+    self.draftButton.hidden = (totalDuration +  duration) >= self.shortVideoRecorder.maxDuration;
     
     if (totalDuration >= self.shortVideoRecorder.maxDuration) {
         [self endButtonEvent:nil];
@@ -1166,20 +835,85 @@ FUItemsViewDelegate
     // 获取当前会话的所有的视频段文件
     NSArray *filesURLArray = [self.shortVideoRecorder getAllFilesURL];
     NSLog(@"filesURLArray:%@", filesURLArray);
-    
+
+    __block AVAsset *movieAsset = asset;
+    if (self.musicButton.selected) {
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        [self loadActivityIndicatorView];
+        [self.shortVideoRecorder mixWithMusicVolume:0.3 videoVolume:0.8 completionHandler:^(AVMutableComposition * _Nullable composition, AVAudioMix * _Nullable audioMix, NSError * _Nullable error) {
+            AVAssetExportSession *exporter = [[AVAssetExportSession alloc]initWithAsset:composition presetName:AVAssetExportPresetHighestQuality];
+            NSURL *outputPath = [self exportAudioMixPath];
+            exporter.outputURL = outputPath;
+            exporter.outputFileType = AVFileTypeMPEG4;
+            exporter.shouldOptimizeForNetworkUse= YES;
+            exporter.audioMix = audioMix;
+            [exporter exportAsynchronouslyWithCompletionHandler:^{
+                switch ([exporter status]) {
+                    case AVAssetExportSessionStatusFailed: {
+                        NSLog(@"audio mix failed：%@",[[exporter error] description]);
+                    } break;
+                    case AVAssetExportSessionStatusCancelled: {
+                        NSLog(@"audio mix canceled");
+                    } break;
+                    case AVAssetExportSessionStatusCompleted: {
+                        NSLog(@"audio mix success");
+                        movieAsset = [AVAsset assetWithURL:outputPath];
+                    } break;
+                    default: {
+                        
+                    } break;
+                }
+                dispatch_semaphore_signal(semaphore);
+            }];
+        }];
+        [self removeActivityIndicatorView];
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+    }
     // 设置音视频、水印等编辑信息
     NSMutableDictionary *outputSettings = [[NSMutableDictionary alloc] init];
     // 待编辑的原始视频素材
     NSMutableDictionary *plsMovieSettings = [[NSMutableDictionary alloc] init];
-    plsMovieSettings[PLSAssetKey] = asset;
+    plsMovieSettings[PLSAssetKey] = movieAsset;
     plsMovieSettings[PLSStartTimeKey] = [NSNumber numberWithFloat:0.f];
     plsMovieSettings[PLSDurationKey] = [NSNumber numberWithFloat:[self.shortVideoRecorder getTotalDuration]];
     plsMovieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:1.0f];
     outputSettings[PLSMovieSettingsKey] = plsMovieSettings;
-
+    
     EditViewController *videoEditViewController = [[EditViewController alloc] init];
     videoEditViewController.settings = outputSettings;
+    videoEditViewController.filesURLArray = filesURLArray;
     [self presentViewController:videoEditViewController animated:YES completion:nil];
+}
+#pragma mark - 输出路径
+- (NSURL *)exportAudioMixPath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *path = [paths objectAtIndex:0];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if(![fileManager fileExistsAtPath:path]) {
+        [fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"yyyyMMddHHmmss";
+    NSString *nowTimeStr = [formatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0]];
+    NSString *fileName = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_mix.mp4",nowTimeStr]];
+    return [NSURL fileURLWithPath:fileName];
+}
+
+// 加载拼接视频的动画
+- (void)loadActivityIndicatorView {
+    if ([self.activityIndicatorView isAnimating]) {
+        [self.activityIndicatorView stopAnimating];
+        [self.activityIndicatorView removeFromSuperview];
+    }
+    
+    [self.view addSubview:self.activityIndicatorView];
+    [self.activityIndicatorView startAnimating];
+}
+
+// 移除拼接视频的动画
+- (void)removeActivityIndicatorView {
+    [self.activityIndicatorView removeFromSuperview];
+    [self.activityIndicatorView stopAnimating];
 }
 
 #pragma mark -- 隐藏状态栏
@@ -1199,64 +933,12 @@ FUItemsViewDelegate
     
     self.alertView = nil;
     
-    self.filtersArray = nil;
-    
-    /* 内存释放 */
-    [self.renderManager releaseManager];
-    [self.UIManager releaseManager];
+    if ([self.activityIndicatorView isAnimating]) {
+        [self.activityIndicatorView stopAnimating];
+        self.activityIndicatorView = nil;
+    }
     
     NSLog(@"dealloc: %@", [[self class] description]);
-}
-
-#pragma mark -- UICollectionView delegate  用来展示和处理 SDK 内部自带的滤镜效果
-// 加载 collectionView 视图
-- (UICollectionView *)editVideoCollectionView {
-    if (!_editVideoCollectionView) {
-        
-        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc]init];
-        layout.itemSize = CGSizeMake(50, 65);
-        [layout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
-        layout.minimumLineSpacing = 10;
-        layout.minimumInteritemSpacing = 10;
-        
-        _editVideoCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, layout.itemSize.height) collectionViewLayout:layout];
-        _editVideoCollectionView.backgroundColor = [UIColor clearColor];
-        
-        _editVideoCollectionView.showsHorizontalScrollIndicator = NO;
-        _editVideoCollectionView.showsVerticalScrollIndicator = NO;
-        [_editVideoCollectionView setExclusiveTouch:YES];
-        
-        [_editVideoCollectionView registerClass:[PLSEditVideoCell class] forCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class])];
-        
-        _editVideoCollectionView.delegate = self;
-        _editVideoCollectionView.dataSource = self;
-    }
-    return _editVideoCollectionView;
-}
-
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
-    return self.filtersArray.count;
-}
-
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    PLSEditVideoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class]) forIndexPath:indexPath];
-    
-    // 滤镜
-    NSDictionary *filterInfoDic = self.filtersArray[indexPath.row];
-    
-    NSString *name = [filterInfoDic objectForKey:@"name"];
-    NSString *coverImagePath = [filterInfoDic objectForKey:@"coverImagePath"];
-    
-    cell.iconPromptLabel.text = name;
-    cell.iconImageView.image = [UIImage imageWithContentsOfFile:coverImagePath];
-    
-    return  cell;
-}
-
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-
-    // 滤镜
-    self.filterGroup.filterIndex = indexPath.row;
 }
 
 @end

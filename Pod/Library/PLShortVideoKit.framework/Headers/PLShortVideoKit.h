@@ -16,6 +16,8 @@ FOUNDATION_EXPORT const unsigned char PLShortVideoKitVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <PLShortVideoKit/PublicHeader.h>
 
+#import <PLShortVideoKit/PLShortVideoKitEnv.h>
+
 #import <PLShortVideoKit/PLSAudioConfiguration.h>
 #import <PLShortVideoKit/PLSVideoConfiguration.h>
 #import <PLShortVideoKit/PLSTypeDefines.h>
@@ -30,8 +32,14 @@ FOUNDATION_EXPORT const unsigned char PLShortVideoKitVersionString[];
 #import <PLShortVideoKit/PLSFilter.h>
 #import <PLShortVideoKit/PLSEditPlayer.h>
 
+#import <PLShortVideoKit/PLSEditingProtocol.h>
+#import <PLShortVideoKit/PLSVideoEditingView.h>
+#import <PLShortVideoKit/PLSVideoEdit.h>
+#import <PLShortVideoKit/PLSText.h>
+
 #import <PLShortVideoKit/PLSGifComposer.h>
 #import <PLShortVideoKit/PLSMovieComposer.h>
+#import <PLShortVideoKit/PLSImageToMovieComposer.h>
 #import <PLShortVideoKit/PLSReverserEffect.h>
 #import <PLShortVideoKit/PLShortVideoAsset.h>
 

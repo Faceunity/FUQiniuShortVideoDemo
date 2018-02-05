@@ -98,6 +98,16 @@
 @property (nonatomic, readonly) CGFloat musicVolume;
 
 /**
+ @brief 延迟背景音乐的播放，单位为毫秒，默认值为 0
+        建议使用 视频帧间隔*(视频帧率/2) * 1000 毫秒
+        比如：视频帧率为30帧/秒，延迟时间为 （1.0/30)*(30/2)*1000 = 500毫秒，
+        即 delayTimeForMusicToPlay = 500
+ 
+ @since      v1.8.0
+ */
+@property (assign, nonatomic) CGFloat delayTimeForMusicToPlay;
+
+/**
  @brief 使用 NSURL 初始化编辑实例
  
  @since      v1.1.0
@@ -202,6 +212,22 @@
  @since      v1.5.0
  */
 - (void)clearWaterMark;
+
+/**
+ @brief 旋转视频的方向，能将竖屏视频旋转为横屏视频，横屏视频旋转为竖屏视频
+ *
+ *  return PLSPreviewOrientation 当前视频的方向
+ 
+ @since      v1.7.0
+ */
+- (PLSPreviewOrientation)rotateVideoLayer;
+
+/**
+ @brief 重置视频的旋转方向，视频的方向被置为视频的原始方向
+ 
+ @since      v1.7.0
+ */
+- (void)resetVideoLayerOrientation;
 
 @end
 
