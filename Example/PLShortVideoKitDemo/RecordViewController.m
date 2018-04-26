@@ -18,11 +18,16 @@
 #import "PLSViewRecorderManager.h"
 #import "PLSRateButtonView.h"
 
+#import "FaceTracker.h"
+#import "KWRenderManager.h"
+#import "Global.h"
+#import "KWUIManager.h"
 #import "EasyarARViewController.h"
 
 #import "FUManager.h"
 #import <FUAPIDemoBar/FUAPIDemoBar.h>
 
+#define AlertViewShow(msg) [[[UIAlertView alloc] initWithTitle:@"warning" message:[NSString stringWithFormat:@"%@", msg] delegate:nil cancelButtonTitle:@"ok" otherButtonTitles:nil] show]
 
 #define PLS_CLOSE_CONTROLLER_ALERTVIEW_TAG 10001
 #define PLS_SCREEN_WIDTH CGRectGetWidth([UIScreen mainScreen].bounds)
@@ -37,6 +42,9 @@
 @interface RecordViewController ()
 <
 PLShortVideoRecorderDelegate,
+UICollectionViewDelegate,
+UICollectionViewDataSource,
+UICollectionViewDelegateFlowLayout,
 PLSViewRecorderManagerDelegate,
 PLSRateButtonViewDelegate,
 
@@ -75,6 +83,10 @@ FUAPIDemoBarDelegate
 
 // 所有滤镜
 @property (strong, nonatomic) PLSFilterGroup *filterGroup;
+// 展示所有滤镜的集合视图
+@property (strong, nonatomic) UICollectionView *editVideoCollectionView;
+@property (strong, nonatomic) NSMutableArray<NSDictionary *> *filtersArray;
+@property (assign, nonatomic) NSInteger filterIndex;
 
 @property (strong, nonatomic) UIButton *draftButton;
 @property (strong, nonatomic) NSURL *URL;
@@ -82,18 +94,21 @@ FUAPIDemoBarDelegate
 @property (strong, nonatomic) UIButton *musicButton;
 @property (strong, nonatomic) UIActivityIndicatorView *activityIndicatorView;
 
+// 实时截图按钮
+@property (strong, nonatomic) UIButton *snapshotButton;
+
 // 录制前是否开启自动检测设备方向调整视频拍摄的角度（竖屏、横屏）
 @property (assign, nonatomic) BOOL isUseAutoCheckDeviceOrientationBeforeRecording;
 
+@property (nonatomic, strong) KWUIManager *UIManager;
+@property (nonatomic, strong) KWRenderManager *renderManager;
 @property (nonatomic, copy) NSString *modelPath;
 
 
-
-/****---- FaceUnity ----****/
+/**     FaceUnity       **/
 
 @property (nonatomic, strong) FUAPIDemoBar *demoBar ;
-
-/****---- FaceUnity ----****/
+/**     FaceUnity       **/
 @end
 
 @implementation RecordViewController
@@ -126,109 +141,177 @@ FUAPIDemoBarDelegate
     // --------------------------
     [self setupBaseToolboxView];
     [self setupRecordToolboxView];
-    
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    // Do any additional setup after loading the view.
     
-    /****---- FaceUnity ----****/
+    // --------------------------
+    // 通过手势切换滤镜
+    [self setupGestureRecognizer];
+    
+    // --------------------------
+    [self setUpEasyarSDKARButton];
+
+    // --------------------------
+    [self setupRenderManager];
+    [self setupKiwiFaceUI];
+    // --------------------------
+    
+    
+    
+    /**     -------- FaceUnity --------       **/
     
     [[FUManager shareManager] loadItems];
-    
-    [self addFaceUnityUI];
-    
-    /****---- FaceUnity ----****/
+    [self.view addSubview:self.demoBar ];
+    /**     -------- FaceUnity --------       **/
 }
 
-/****---- 以下 FaceUnity ----****/
-
-- (void)addFaceUnityUI {
-    
-    [self.view addSubview:self.demoBar];
-    
-    UIButton *filterBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    filterBtn.frame = CGRectMake(16, self.view.frame.size.height - 280, 55, 55) ;
-    [filterBtn setImage:[UIImage imageNamed:@"camera_btn_filter_normal"] forState:UIControlStateNormal];
-    [filterBtn addTarget:self action:@selector(showDemoBar:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:filterBtn ];
-}
-
-- (void)showDemoBar:(UIButton *)sender
-{
-    sender.selected = !sender.selected ;
-    if (sender.selected) {
-        [UIView animateWithDuration:0.4 animations:^{
-            self.demoBar.transform = CGAffineTransformMakeTranslation(0, self.demoBar.frame.size.height) ;
-            self.demoBar.alpha = 1.0 ;
-        }];
-    }else {
-        [UIView animateWithDuration:0.4 animations:^{
-            self.demoBar.transform = CGAffineTransformIdentity ;
-            self.demoBar.alpha = 1.0 ;
-        }];
-    }
-}
-
-/**
- *  Faceunity美颜工具条
- *  初始化 FUAPIDemoBar，设置初始美颜参数
- 
- *  FUAPIDemoBar不是我们的交付内容，它的作用仅局限于我们的Demo演示，客户可以选择使用，但我们不会提供与之相关的技术支持或定制需求开发
- */
+/**     -------- FaceUnity --------       **/
 -(FUAPIDemoBar *)demoBar {
     if (!_demoBar) {
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 215, self.view.frame.size.width, 215)];
+        
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 120, self.view.frame.size.width, 164)];
+        
+        _demoBar.itemsDataSource = [FUManager shareManager].itemsDataSource;
+        _demoBar.selectedItem = [FUManager shareManager].selectedItem ;
+        
+        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource ;
+        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource ;
+        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName ;
+        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter ;
+        [_demoBar setFilterLevel:[FUManager shareManager].selectedFilterLevel forFilter:[FUManager shareManager].selectedFilter] ;
+        
+        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;
+        _demoBar.blurShape = [FUManager shareManager].blurShape ;
+        _demoBar.blurLevel = [FUManager shareManager].blurLevel ;
+        _demoBar.whiteLevel = [FUManager shareManager].whiteLevel ;
+        _demoBar.redLevel = [FUManager shareManager].redLevel;
+        _demoBar.eyelightingLevel = [FUManager shareManager].eyelightingLevel ;
+        _demoBar.beautyToothLevel = [FUManager shareManager].beautyToothLevel ;
+        _demoBar.faceShape = [FUManager shareManager].faceShape ;
+        
+        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel ;
+        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel ;
+        _demoBar.enlargingLevel_new = [FUManager shareManager].enlargingLevel_new ;
+        _demoBar.thinningLevel_new = [FUManager shareManager].thinningLevel_new ;
+        _demoBar.jewLevel = [FUManager shareManager].jewLevel ;
+        _demoBar.foreheadLevel = [FUManager shareManager].foreheadLevel ;
+        _demoBar.noseLevel = [FUManager shareManager].noseLevel ;
+        _demoBar.mouthLevel = [FUManager shareManager].mouthLevel ;
+        
         _demoBar.delegate = self;
-        
-        _demoBar.itemsDataSource =  [FUManager shareManager].itemsDataSource;
-        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource;
-        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName;
-        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource;
-        
-        _demoBar.selectedItem = [FUManager shareManager].selectedItem;      /**选中的道具名称*/
-        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter;  /**选中的滤镜名称*/
-        _demoBar.whiteLevel = [FUManager shareManager].beautyLevel;        /**美白 (0~1)*/
-        _demoBar.redLevel = [FUManager shareManager].redLevel;              /**红润 (0~1)*/
-        _demoBar.selectedBlur = [FUManager shareManager].selectedBlur;      /**磨皮(0、1、2、3、4、5、6)*/
-        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;/**是否开启皮肤检测(YES/NO)*/
-        _demoBar.faceShape = [FUManager shareManager].faceShape;            /**美型类型 (0、1、2、3) 默认：3，女神：0，网红：1，自然：2*/
-        _demoBar.faceShapeLevel = [FUManager shareManager].faceShapeLevel;  /**美型等级 (0~1)*/
-        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel;  /**大眼 (0~1)*/
-        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel;    /**瘦脸 (0~1)*/
     }
     return _demoBar ;
 }
 
-#pragma -FUAPIDemoBarDelegate
-- (void)demoBarDidSelectedItem:(NSString *)item
-{
-    //加载道具
-    [[FUManager shareManager] loadItem:item];
+/**      FUAPIDemoBarDelegate       **/
+
+- (void)demoBarDidSelectedItem:(NSString *)itemName {
+    
+    [[FUManager shareManager] loadItem:itemName];
 }
 
-/**设置美颜参数*/
-- (void)demoBarBeautyParamChanged
-{
-    [self syncBeautyParams];
-}
-
-- (void)syncBeautyParams
-{
-    [FUManager shareManager].selectedFilter = _demoBar.selectedFilter;
-    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
-    [FUManager shareManager].selectedBlur = _demoBar.selectedBlur;
+- (void)demoBarBeautyParamChanged {
+    
     [FUManager shareManager].skinDetectEnable = _demoBar.skinDetectEnable;
-    [FUManager shareManager].beautyLevel = _demoBar.whiteLevel;
+    [FUManager shareManager].blurShape = _demoBar.blurShape;
+    [FUManager shareManager].blurLevel = _demoBar.blurLevel ;
+    [FUManager shareManager].whiteLevel = _demoBar.whiteLevel;
     [FUManager shareManager].redLevel = _demoBar.redLevel;
+    [FUManager shareManager].eyelightingLevel = _demoBar.eyelightingLevel;
+    [FUManager shareManager].beautyToothLevel = _demoBar.beautyToothLevel;
     [FUManager shareManager].faceShape = _demoBar.faceShape;
-    [FUManager shareManager].faceShapeLevel = _demoBar.faceShapeLevel;
-    [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
     [FUManager shareManager].enlargingLevel = _demoBar.enlargingLevel;
+    [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
+    [FUManager shareManager].enlargingLevel_new = _demoBar.enlargingLevel_new;
+    [FUManager shareManager].thinningLevel_new = _demoBar.thinningLevel_new;
+    [FUManager shareManager].jewLevel = _demoBar.jewLevel;
+    [FUManager shareManager].foreheadLevel = _demoBar.foreheadLevel;
+    [FUManager shareManager].noseLevel = _demoBar.noseLevel;
+    [FUManager shareManager].mouthLevel = _demoBar.mouthLevel;
+    
+    [FUManager shareManager].selectedFilter = _demoBar.selectedFilter ;
+    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
 }
 
-/****---- 以上 FaceUnity ----****/
+#pragma mark -- dealloc
+- (void)dealloc {
+    self.shortVideoRecorder.delegate = nil;
+    self.shortVideoRecorder = nil;
+    
+    self.alertView = nil;
+    
+    self.filtersArray = nil;
+    
+    /* 内存释放 */
+    [self.renderManager releaseManager];
+    [self.UIManager releaseManager];
+    
+    if ([self.activityIndicatorView isAnimating]) {
+        [self.activityIndicatorView stopAnimating];
+        self.activityIndicatorView = nil;
+    }
+    
+    /**     -----  FaceUnity  ----     **/
+    [[FUManager shareManager] destoryItems];
+    /**     -----  FaceUnity  ----     **/
+    
+    NSLog(@"dealloc: %@", [[self class] description]);
+}
 
+
+#pragma mark - PLShortVideoRecorderDelegate 摄像头采集的视频数据的回调
+/// @abstract 获取到摄像头原数据时的回调, 便于开发者做滤镜等处理，需要注意的是这个回调在 camera 数据的输出线程，请不要做过于耗时的操作，否则可能会导致帧率下降
+- (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    //此处可以做美颜/滤镜等处理
+    // 是否在录制时使用滤镜，默认是关闭的，NO
+    if (self.isUseFilterWhenRecording) {
+        PLSFilter *filter = self.filterGroup.currentFilter;
+        pixelBuffer = [filter process:pixelBuffer];
+    }
+    
+    UIDeviceOrientation iDeviceOrientation = [[UIDevice currentDevice] orientation];
+    //    BOOL mirrored = !self.kwSdkUI.kwSdk.cameraPositionBack;
+    BOOL mirrored = NO;
+    
+    cv_rotate_type cvMobileRotate;
+    
+    switch (iDeviceOrientation) {
+            case UIDeviceOrientationPortrait:
+            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
+            break;
+            
+            case UIDeviceOrientationLandscapeLeft:
+            cvMobileRotate = mirrored ?  CV_CLOCKWISE_ROTATE_90: CV_CLOCKWISE_ROTATE_270;
+            break;
+            
+            case UIDeviceOrientationLandscapeRight:
+            cvMobileRotate = mirrored ? CV_CLOCKWISE_ROTATE_270 : CV_CLOCKWISE_ROTATE_90;
+            break;
+            
+            case UIDeviceOrientationPortraitUpsideDown:
+            cvMobileRotate = CV_CLOCKWISE_ROTATE_180;
+            break;
+            
+        default:
+            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
+            break;
+    }
+    
+    /*********** 视频帧渲染 ***********/
+    [KWRenderManager processPixelBuffer:pixelBuffer];
+    
+    
+    /**     -----  FaceUnity  ----     **/
+    [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
+    /**     -----  FaceUnity  ----     **/
+    
+    return pixelBuffer;
+}
+
+/**     -------- FaceUnity --------       **/
 
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -313,13 +396,41 @@ FUAPIDemoBarDelegate
         }];
     }
     
+    // 默认关闭内部滤镜
+    if (self.isUseFilterWhenRecording) {
+        // 滤镜资源
+        self.filtersArray = [[NSMutableArray alloc] init];
+        for (NSDictionary *filterInfoDic in self.filterGroup.filtersInfo) {
+            NSString *name = [filterInfoDic objectForKey:@"name"];
+            NSString *coverImagePath = [filterInfoDic objectForKey:@"coverImagePath"];
+            
+            NSDictionary *dic = @{
+                                  @"name"            : name,
+                                  @"coverImagePath"  : coverImagePath
+                                  };
+            
+            [self.filtersArray addObject:dic];
+        }
+        
+        // 展示多种滤镜的 UICollectionView
+        CGRect frame = self.editVideoCollectionView.frame;
+        CGFloat x = PLS_BaseToolboxView_HEIGHT;
+        CGFloat y = PLS_BaseToolboxView_HEIGHT;
+        CGFloat width = frame.size.width - 2*x;
+        CGFloat height = frame.size.height;
+        self.editVideoCollectionView.frame = CGRectMake(x, y, width, height);
+        [self.view addSubview:self.editVideoCollectionView];
+        [self.editVideoCollectionView reloadData];
+        self.editVideoCollectionView.hidden = YES;
+    }
+    
     // 本地视频
     NSString *filePath = [[NSBundle mainBundle] pathForResource:@"video_draft_test" ofType:@"mp4"];
     self.URL = [NSURL fileURLWithPath:filePath];
 }
 
 - (void)setupBaseToolboxView {
-    self.baseToolboxView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, PLS_BaseToolboxView_HEIGHT)];
+    self.baseToolboxView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, PLS_BaseToolboxView_HEIGHT, PLS_BaseToolboxView_HEIGHT + PLS_SCREEN_WIDTH)];
     self.baseToolboxView.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.baseToolboxView];
     
@@ -331,9 +442,18 @@ FUAPIDemoBarDelegate
     [backButton addTarget:self action:@selector(backButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
     [self.baseToolboxView addSubview:backButton];
     
+    // 七牛滤镜
+    UIButton *filterButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    filterButton.frame = CGRectMake(10, 55, 35, 35);
+    [filterButton setTitle:@"滤镜" forState:UIControlStateNormal];
+    [filterButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    filterButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [filterButton addTarget:self action:@selector(filterButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [self.baseToolboxView addSubview:filterButton];
+    
     // 录屏按钮
     self.viewRecordButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.viewRecordButton.frame = CGRectMake(PLS_SCREEN_WIDTH - 255, 10, 35, 35);
+    self.viewRecordButton.frame = CGRectMake(10, 100, 35, 35);
     [self.viewRecordButton setTitle:@"录屏" forState:UIControlStateNormal];
     [self.viewRecordButton setTitle:@"完成" forState:UIControlStateSelected];
     self.viewRecordButton.selected = NO;
@@ -344,7 +464,7 @@ FUAPIDemoBarDelegate
     
     // 全屏／正方形录制模式
     self.squareRecordButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.squareRecordButton.frame = CGRectMake(PLS_SCREEN_WIDTH - 200, 10, 35, 35);
+    self.squareRecordButton.frame = CGRectMake(10, 145, 35, 35);
     [self.squareRecordButton setTitle:@"1:1" forState:UIControlStateNormal];
     [self.squareRecordButton setTitle:@"全屏" forState:UIControlStateSelected];
     self.squareRecordButton.selected = NO;
@@ -355,29 +475,89 @@ FUAPIDemoBarDelegate
     
     // 闪光灯
     UIButton *flashButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    flashButton.frame = CGRectMake(PLS_SCREEN_WIDTH - 145, 10, 35, 35);
+    flashButton.frame = CGRectMake(10, 190, 35, 35);
     [flashButton setBackgroundImage:[UIImage imageNamed:@"flash_close"] forState:UIControlStateNormal];
     [flashButton setBackgroundImage:[UIImage imageNamed:@"flash_open"] forState:UIControlStateSelected];
     [flashButton addTarget:self action:@selector(flashButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
     [self.baseToolboxView addSubview:flashButton];
     
+    // 美颜
+    UIButton *beautyFaceButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    beautyFaceButton.frame = CGRectMake(10, 235, 30, 30);
+    [beautyFaceButton setTitle:@"美颜" forState:UIControlStateNormal];
+    [beautyFaceButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    beautyFaceButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [beautyFaceButton addTarget:self action:@selector(beautyFaceButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [self.baseToolboxView addSubview:beautyFaceButton];
+    
     // 切换摄像头
     UIButton *toggleCameraButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    toggleCameraButton.frame = CGRectMake(PLS_SCREEN_WIDTH - 45, 10, 35, 35);
+    toggleCameraButton.frame = CGRectMake(10, 280, 35, 35);
     [toggleCameraButton setBackgroundImage:[UIImage imageNamed:@"toggle_camera"] forState:UIControlStateNormal];
     [toggleCameraButton addTarget:self action:@selector(toggleCameraButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
     [self.baseToolboxView addSubview:toggleCameraButton];
+    
+    // 录制的视频文件的存储路径设置
+    self.filePathButton = [[UIButton alloc] init];
+    self.filePathButton.frame = CGRectMake(10, 325, 35, 35);
+    [self.filePathButton setImage:[UIImage imageNamed:@"file_path"] forState:UIControlStateNormal];
+    [self.filePathButton addTarget:self action:@selector(filePathButtonClickedEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [self.baseToolboxView addSubview:self.filePathButton];
+    
+    self.filePathButton.selected = NO;
+    self.useSDKInternalPath = YES;
+    
+    // 加载草稿视频
+    self.draftButton = [[UIButton alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH - 60, 300, 46, 46)];
+    self.draftButton.layer.cornerRadius = 23;
+    self.draftButton.backgroundColor = [UIColor colorWithRed:116/255 green:116/255 blue:116/255 alpha:0.55];
+    [self.draftButton setImage:[UIImage imageNamed:@"draft_video"] forState:UIControlStateNormal];
+    self.draftButton.imageEdgeInsets = UIEdgeInsetsMake(6, 6, 6, 6);
+    [self.draftButton addTarget:self action:@selector(draftVideoButtonOnClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_draftButton];
+    
+    // 是否使用背景音乐
+    self.musicButton = [[UIButton alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH - 60, 360, 46, 46)];
+    self.musicButton.layer.cornerRadius = 23;
+    self.musicButton.backgroundColor = [UIColor colorWithRed:116/255 green:116/255 blue:116/255 alpha:0.55];
+    [self.musicButton setImage:[UIImage imageNamed:@"music_no_selected"] forState:UIControlStateNormal];
+    [self.musicButton setImage:[UIImage imageNamed:@"music_selected"] forState:UIControlStateSelected];
+    self.musicButton.imageEdgeInsets = UIEdgeInsetsMake(6, 6, 6, 6);
+    [self.musicButton addTarget:self action:@selector(musicButtonOnClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_musicButton];
+    
+    // 拍照
+    self.snapshotButton = [[UIButton alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH - 60, 10, 46, 46)];
+    self.snapshotButton.layer.cornerRadius = 23;
+    self.snapshotButton.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.55];
+    [self.snapshotButton setImage:[UIImage imageNamed:@"icon_trim"] forState:UIControlStateNormal];
+    self.snapshotButton.imageEdgeInsets = UIEdgeInsetsMake(6, 6, 6, 6);
+    [self.snapshotButton addTarget:self action:@selector(snapshotButtonOnClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_snapshotButton];
+    
+    // 展示拼接视频的动画
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithFrame:self.view.bounds];
+    self.activityIndicatorView.center = self.view.center;
+    [self.activityIndicatorView setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    self.activityIndicatorView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
 }
 
 - (void)setupRecordToolboxView {
-    CGFloat y = self.baseToolboxView.frame.origin.y + self.baseToolboxView.frame.size.height + PLS_SCREEN_WIDTH;
+    CGFloat y = PLS_BaseToolboxView_HEIGHT + PLS_SCREEN_WIDTH;
     self.recordToolboxView = [[UIView alloc] initWithFrame:CGRectMake(0, y, PLS_SCREEN_WIDTH, PLS_SCREEN_HEIGHT- y)];
     self.recordToolboxView.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.recordToolboxView];
+
     
     // 倍数拍摄
     self.titleArray = @[@"极慢", @"慢", @"正常", @"快", @"极快"];
-    self.rateButtonView = [[PLSRateButtonView alloc]initWithFrame:CGRectMake(PLS_SCREEN_WIDTH/2 - 130, 35, 260, 34) defaultIndex:2];
+    CGFloat rateTopSapce;
+    if (PLS_SCREEN_HEIGHT > 568) {
+        rateTopSapce = 35;
+    } else{
+        rateTopSapce = 30;
+    }
+    self.rateButtonView = [[PLSRateButtonView alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH/2 - 130, rateTopSapce, 260, 34) defaultIndex:2];
     self.rateButtonView.hidden = NO;
     self.titleIndex = 2;
     CGFloat countSpace = 200 /self.titleArray.count / 6;
@@ -451,6 +631,58 @@ FUAPIDemoBarDelegate
     importMovieLabel.textAlignment = NSTextAlignmentCenter;
     importMovieLabel.font = [UIFont systemFontOfSize:14.0];
     [self.importMovieView addSubview:importMovieLabel];
+}
+
+#pragma mark - 初始化KiwiFaceSDK
+- (void)setupRenderManager {
+    
+    // 1.创建 KWRenderManager对象,指定models文件路径 若不传则默认路径是KWResource.bundle/models
+    //    self.renderManager = [[KWRenderManager alloc] initWithModelPath:self.modelPath isCameraPositionBack:NO];
+    self.renderManager = [[KWRenderManager alloc] initWithModelPath:nil isCameraPositionBack:YES];
+    
+    // 2.KWSDK鉴权提示
+    if ([KWRenderManager renderInitCode] != 0) {
+        UIAlertView *alertView =
+        [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"KiwiFaceSDK初始化失败,错误码: %d", [KWRenderManager renderInitCode]] message:@"可在FaceTracker.h中查看错误码" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        
+        [alertView show];
+        
+        return;
+    }
+    
+    // 3.加载贴纸滤镜
+    [self.renderManager loadRender];
+    
+}
+
+#pragma mark -初始化KiwiFace的演示UI
+- (void)setupKiwiFaceUI{
+    // 1.初始化UIManager
+    self.UIManager = [[KWUIManager alloc] initWithRenderManager:self.renderManager delegate:self superView:self.view];
+    // 2.是否清除原UI
+    self.UIManager.isClearOldUI = NO;
+    
+    // 3.创建内置UI
+    [self.UIManager createUI];
+    /* 横竖屏时更新sdk内置UI 坐标 */
+    [_UIManager resetScreemMode];
+}
+
+#pragma mark - EasyarSDK AR 入口
+- (void)setUpEasyarSDKARButton {
+    UIButton *ARButton = [[UIButton alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH - 60, 240, 46, 46)];
+    ARButton.layer.cornerRadius = 23;
+    ARButton.backgroundColor = [UIColor colorWithRed:116/255 green:116/255 blue:116/255 alpha:0.55];
+    [ARButton setImage:[UIImage imageNamed:@"easyar_AR"] forState:UIControlStateNormal];
+    ARButton.imageEdgeInsets = UIEdgeInsetsMake(6, 6, 6, 6);
+    [ARButton addTarget:self action:@selector(ARButtonOnClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:ARButton];
+}
+
+- (void)ARButtonOnClick:(id)sender {
+    EasyarARViewController *easyerARViewController = [[EasyarARViewController alloc]init];
+    [easyerARViewController loadARID:@"287e6520eff14884be463d61efb40ba8"];
+    [self presentViewController:easyerARViewController animated:NO completion:nil];
 }
 
 #pragma mark -- Button event
@@ -565,9 +797,83 @@ FUAPIDemoBarDelegate
     }
 }
 
+// 打开／关闭美颜
+- (void)beautyFaceButtonEvent:(id)sender {
+    UIButton *button = (UIButton *)sender;
+    
+    [self.shortVideoRecorder setBeautifyModeOn:!button.selected];
+    
+    button.selected = !button.selected;
+}
+
 // 切换前后置摄像头
 - (void)toggleCameraButtonEvent:(id)sender {
     [self.shortVideoRecorder toggleCamera];
+}
+
+// 七牛滤镜
+- (void)filterButtonEvent:(UIButton *)button {
+    button.selected = !button.selected;
+    self.editVideoCollectionView.hidden = !button.selected;
+}
+
+// 加载草稿视频
+- (void)draftVideoButtonOnClick:(id)sender{
+    AVAsset *asset = [AVAsset assetWithURL:_URL];
+    CGFloat duration = CMTimeGetSeconds(asset.duration);
+    if ((self.shortVideoRecorder.getTotalDuration + duration) < self.shortVideoRecorder.maxDuration) {
+        [self.shortVideoRecorder insertVideo:_URL];
+        if (self.shortVideoRecorder.getTotalDuration != 0) {
+            _deleteButton.style = PLSDeleteButtonStyleNormal;
+            _deleteButton.hidden = NO;
+            
+            [_progressBar addProgressView];
+            [_progressBar startShining];
+            [_progressBar setLastProgressToWidth:duration / self.shortVideoRecorder.maxDuration * _progressBar.frame.size.width];
+            [_progressBar stopShining];
+        }
+        self.durationLabel.text = [NSString stringWithFormat:@"%.2fs", self.shortVideoRecorder.getTotalDuration];
+        if (self.shortVideoRecorder.getTotalDuration >= self.shortVideoRecorder.maxDuration) {
+            self.importMovieButton.hidden = YES;
+            [self endButtonEvent:nil];
+        }
+    }
+}
+
+// 是否使用背景音乐
+- (void)musicButtonOnClick:(id)sender {
+    self.musicButton.selected = !self.musicButton.selected;
+    if (self.musicButton.selected) {
+        // 背景音乐
+        NSURL *audioURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"counter-35s" ofType:@"m4a"]];
+        [self.shortVideoRecorder mixAudio:audioURL];
+    } else{
+        [self.shortVideoRecorder mixAudio:nil];
+    }
+}
+
+// 拍照
+-(void)snapshotButtonOnClick:(UIButton *)sender {
+    sender.enabled = NO;
+
+    [self.shortVideoRecorder getScreenShotWithCompletionHandler:^(UIImage * _Nullable image) {
+        sender.enabled = YES;
+        if (image) {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+            });
+        }
+    }];
+}
+
+//
+- (void)filePathButtonClickedEvent:(id)sender {
+    self.filePathButton.selected = !self.filePathButton.selected;
+    if (self.filePathButton.selected) {
+        self.useSDKInternalPath = NO;
+    } else {
+        self.useSDKInternalPath = YES;
+    }
 }
 
 // 删除上一段视频
@@ -742,16 +1048,8 @@ FUAPIDemoBarDelegate
 }
 
 #pragma mark - PLShortVideoRecorderDelegate 摄像头对焦位置的回调
-- (void)shortVideoRecorderDidFocusAtPoint:(CGPoint)point {
-    NSLog(@"shortVideoRecorderDidFocusAtPoint:%@", NSStringFromCGPoint(point));
-}
-
-#pragma mark - PLShortVideoRecorderDelegate 摄像头采集的视频数据的回调
-/// @abstract 获取到摄像头原数据时的回调, 便于开发者做滤镜等处理，需要注意的是这个回调在 camera 数据的输出线程，请不要做过于耗时的操作，否则可能会导致帧率下降
-- (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
-    
-    [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
-    return pixelBuffer;
+- (void)shortVideoRecorder:(PLShortVideoRecorder *)recorder didFocusAtPoint:(CGPoint)point {
+    NSLog(@"shortVideoRecorder: didFocusAtPoint: %@", NSStringFromCGPoint(point));
 }
 
 #pragma mark -- PLShortVideoRecorderDelegate 视频录制回调
@@ -840,7 +1138,8 @@ FUAPIDemoBarDelegate
     if (self.musicButton.selected) {
         dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
         [self loadActivityIndicatorView];
-        [self.shortVideoRecorder mixWithMusicVolume:0.3 videoVolume:0.8 completionHandler:^(AVMutableComposition * _Nullable composition, AVAudioMix * _Nullable audioMix, NSError * _Nullable error) {
+        // MusicVolume：1.0，videoVolume:0.0 即完全丢弃掉拍摄时的所有声音，只保留背景音乐的声音
+        [self.shortVideoRecorder mixWithMusicVolume:1.0 videoVolume:0.0 completionHandler:^(AVMutableComposition * _Nullable composition, AVAudioMix * _Nullable audioMix, NSError * _Nullable error) {
             AVAssetExportSession *exporter = [[AVAssetExportSession alloc]initWithAsset:composition presetName:AVAssetExportPresetHighestQuality];
             NSURL *outputPath = [self exportAudioMixPath];
             exporter.outputURL = outputPath;
@@ -850,7 +1149,8 @@ FUAPIDemoBarDelegate
             [exporter exportAsynchronouslyWithCompletionHandler:^{
                 switch ([exporter status]) {
                     case AVAssetExportSessionStatusFailed: {
-                        NSLog(@"audio mix failed：%@",[[exporter error] description]);
+                        NSLog(@"audio mix failed：%@", [[exporter error] description]);
+                        AlertViewShow([[exporter error] description]);
                     } break;
                     case AVAssetExportSessionStatusCancelled: {
                         NSLog(@"audio mix canceled");
@@ -926,19 +1226,107 @@ FUAPIDemoBarDelegate
     // Dispose of any resources that can be recreated.
 }
 
-#pragma mark -- dealloc
-- (void)dealloc {
-    self.shortVideoRecorder.delegate = nil;
-    self.shortVideoRecorder = nil;
+#pragma mark -- UICollectionView delegate  用来展示和处理 SDK 内部自带的滤镜效果
+// 加载 collectionView 视图
+- (UICollectionView *)editVideoCollectionView {
+    if (!_editVideoCollectionView) {
+        
+        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc]init];
+        layout.itemSize = CGSizeMake(50, 65);
+        [layout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
+        layout.minimumLineSpacing = 10;
+        layout.minimumInteritemSpacing = 10;
+        
+        _editVideoCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, PLS_SCREEN_WIDTH, layout.itemSize.height) collectionViewLayout:layout];
+        _editVideoCollectionView.backgroundColor = [UIColor clearColor];
+        
+        _editVideoCollectionView.showsHorizontalScrollIndicator = NO;
+        _editVideoCollectionView.showsVerticalScrollIndicator = NO;
+        [_editVideoCollectionView setExclusiveTouch:YES];
+        
+        [_editVideoCollectionView registerClass:[PLSEditVideoCell class] forCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class])];
+        
+        _editVideoCollectionView.delegate = self;
+        _editVideoCollectionView.dataSource = self;
+    }
+    return _editVideoCollectionView;
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
+    return self.filtersArray.count;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    PLSEditVideoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:NSStringFromClass([PLSEditVideoCell class]) forIndexPath:indexPath];
     
-    self.alertView = nil;
+    // 滤镜
+    NSDictionary *filterInfoDic = self.filtersArray[indexPath.row];
     
-    if ([self.activityIndicatorView isAnimating]) {
-        [self.activityIndicatorView stopAnimating];
-        self.activityIndicatorView = nil;
+    NSString *name = [filterInfoDic objectForKey:@"name"];
+    NSString *coverImagePath = [filterInfoDic objectForKey:@"coverImagePath"];
+    
+    cell.iconPromptLabel.text = name;
+    cell.iconImageView.image = [UIImage imageWithContentsOfFile:coverImagePath];
+    
+    return  cell;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+
+    // 滤镜
+    self.filterGroup.filterIndex = indexPath.row;
+}
+
+#pragma mark - 通过手势切换滤镜
+- (void)setupGestureRecognizer {
+    UISwipeGestureRecognizer *recognizer;
+    // 添加右滑手势
+    recognizer = [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(handleSwipeFrom:)];
+    [recognizer setDirection:(UISwipeGestureRecognizerDirectionRight)];
+    [self.view addGestureRecognizer:recognizer];
+    // 添加左滑手势
+    recognizer = [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(handleSwipeFrom:)];
+    [recognizer setDirection:(UISwipeGestureRecognizerDirectionLeft)];
+    [self.view addGestureRecognizer:recognizer];
+    // 添加上滑手势
+    recognizer = [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(handleSwipeFrom:)];
+    [recognizer setDirection:(UISwipeGestureRecognizerDirectionUp)];
+    [self.view addGestureRecognizer:recognizer];
+    // 添加下滑手势
+    recognizer = [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(handleSwipeFrom:)];
+    [recognizer setDirection:(UISwipeGestureRecognizerDirectionDown)];
+    [self.view addGestureRecognizer:recognizer];
+}
+
+// 添加手势的响应事件
+- (void)handleSwipeFrom:(UISwipeGestureRecognizer *)recognizer{
+    if(recognizer.direction == UISwipeGestureRecognizerDirectionDown) {
+        NSLog(@"swipe down");
+        self.filterIndex++;
+        self.filterIndex %= self.filterGroup.filtersInfo.count;
+    }
+    if(recognizer.direction == UISwipeGestureRecognizerDirectionUp) {
+        NSLog(@"swipe up");
+        self.filterIndex--;
+        if (self.filterIndex < 0) {
+            self.filterIndex = self.filterGroup.filtersInfo.count - 1;
+        }
+    }
+    if(recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
+        NSLog(@"swipe left");
+        self.filterIndex--;
+        if (self.filterIndex < 0) {
+            self.filterIndex = self.filterGroup.filtersInfo.count - 1;
+        }
+    }
+    if(recognizer.direction == UISwipeGestureRecognizerDirectionRight) {
+        NSLog(@"swipe right");
+        self.filterIndex++;
+        self.filterIndex %= self.filterGroup.filtersInfo.count;
     }
     
-    NSLog(@"dealloc: %@", [[self class] description]);
+    // 滤镜
+    self.filterGroup.filterIndex = self.filterIndex;
 }
 
 @end
