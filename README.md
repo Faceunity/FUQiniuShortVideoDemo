@@ -1,166 +1,181 @@
-# PLShortVideoKit
+# FUQiniuShortVideoDemo 快速接入文档
 
-PLShortVideoKit 是七牛推出的一款适用于 iOS 平台的短视频 SDK，提供了包括美颜、滤镜、水印、断点录制、分段回删、视频编辑、混音特效、MV 特效、本地/云端存储在内的多种功能，支持高度定制以及二次开发。
+FUQiNiuMediaStreamingKitDemo 是集成了 [Faceunity](https://github.com/Faceunity/FULiveDemo/tree/dev) 面部跟踪和虚拟道具功能和七牛短视频功能的 Demo。
 
-# 1 功能列表
-短视频 SDK 的功能，主要分为 4 大块：拍摄、编辑、转码、上传。
+本文是 FaceUnity SDK 快速对接七牛短视频的导读说明，关于 FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)
 
-## 1.1 视频拍摄
-| 功能点                 | 版本       |
-| ------------------- | -------- |
-| 摄像头采集               | 1.0.0(+) |
-| 麦克风采集               | 1.0.0(+) |
-| 静音功能                | 1.0.0(+) |
-| 实时美颜                | 1.0.0(+) |
-| 贴纸特效                | 1.0.0(+) |
-| 大眼/瘦脸               | 1.0.0(+) |
-| 闪光灯开关               | 1.0.0(+) |
-| 第三方美颜接口             | 1.0.0(+) |
-| 第三方滤镜接口             | 1.0.0(+) |
-| 自定义拍摄时长             | 1.0.0(+) |
-| 自定义分辨率              | 1.0.0(+) |
-| 自定义视频帧率             | 1.0.0(+) |
-| 自定义视频码率             | 1.0.0(+) |
-| 支持 1:1 正方形录制        | 1.0.0(+) |
-| 断点拍摄（多段录制）          | 1.0.0(+) |
-| 回删视频                | 1.0.0(+) |
-| H.264 硬编            | 1.0.0(+) |
-| AAC 硬编              | 1.0.0(+) |
-| 输出 mp4 文件           | 1.0.0(+) |
-| 支持 ARM7, ARM64 及模拟器 | 1.0.0(+) |
-| 实时滤镜                | 1.0.0(+) |
-| 实时水印                | 1.0.0(+) |
-| 手动对焦                | 1.0.0(+) |
-| 自动对焦                | 1.0.0(+) |
-| 曝光调节                | 1.0.0(+) |
-| 横屏拍摄                | 1.3.0(+) |
-| 倍速拍摄                | 1.4.0(+) |
-| AR 特效拍摄             | 1.6.0(+) |
-| 录制背景音乐             | 1.7.0(+) |
-| 视频草稿                | 1.7.0(+) |
-| 拍摄时截图              | 1.9.0(+) |
+## 快速集成方法
 
+### 一、导入 SDK
+将 FaceUnity 文件夹全部拖入工程中，并且添加依赖库 `OpenGLES.framework`、`Accelerate.framework`、`CoreMedia.framework`、`AVFoundation.framework`、`stdc++.tbd`
 
-### 1.1.1 录屏
-| 功能点                 | 版本       |
-| --------------------- | --------- |
-| 外部导入音视频数据       | 1.2.0(+) |
+### 二、快速加载道具
 
-## 1.2 视频编辑
-### 1.2.1 视频剪辑
-| 功能点    | 版本       |
-| ------ | -------- |
-| 关键帧预览  | 1.0.2(+) |
-| 剪辑指定区间 | 1.0.2(+) |
-| 截取封面   | 1.0.2(+) |
-| 视频分割 | 1.10.0(+) |
+在 `viewDidLoad:` 中调用快速加载道具函数，该函数会创建一个美颜道具及指定的贴纸道具。
 
-### 1.2.2 视频特效
-| 功能点   | 版本       | 备注 |
-| ----- | -------- |-------- |
-| 滤镜    | 1.0.0(+) | 无 |
-| 水印    | 1.0.0(+) | 无 |
-| 贴纸特效  | 1.0.0(+) | 基于面部识别，需要额外付费 |
-| 大眼/瘦脸 | 1.0.0(+) | 基于面部识别，需要额外付费 |
-| MV 特效     | 1.5.0(+)  | 无 |
-| 时光倒流特效 | 1.5.0(+)  | 无 |
-| 配音     | 1.6.0(+)  | 无 |
-| 变速     | 1.6.0(+)  | 无 |
-| 旋转     | 1.7.0(+)  | 无 |
-| 视频首帧作为滤镜封面图 | 1.7.0(+)  | 无 |
-| 文字特效 | 1.7.0(+)  | 无 |
-| 视频涂鸦 | 1.7.0(+)  | 无 |
-| 视频贴纸 | 1.7.0(+)  | 无 |
-| 抖音特效 | 1.9.0(+)  | 需要额外付费 |
-
-### 1.2.3 音频特效
-| 功能点        | 版本       |
-| ---------- | -------- |
-| 音频混合       | 1.0.3(+) |
-| 截取音频片段     | 1.0.3(+) |
-| 调节原声/背景声音量 | 1.0.3(+) |
-
-### 1.2.4 视频合成
-| 功能点            | 版本      |
-| ---------------- | -------- |
-| 制作 GIF 动图     | 1.3.0(+) |
-| 多视频拼接        | 1.4.0(+) |
-| 片头片尾 MV 拼接  | 1.4.0(+) |
-| 图片合成视频      | 1.7.0(+) |
-
-### 1.2.5 视频转码
-| 功能点  | 版本       |
-| ---- | -------- |
-| 画面剪裁 | 1.1.0(+) |
-| 码率变换 | 1.1.0(+) |
-
-### 1.2.6 文字动画生成视频文件
-| 功能点                |   版本  |
-| ------------------ | -------- |
-| 文字动画生成视频文件 | 1.10.0(+) |
-
-## 1.3 视频上传
-| 功能点  | 版本       |
-| ---- | -------- |
-| 上传云端 | 1.0.4(+) |
-| 断点续传 | 1.1.0(+) |
-
-## 2. 设备以及系统要求
-
-- 设备要求：搭载 iOS 系统的设备
-- 系统要求：iOS 8.0 及其以上
-
-## 3. 安装方法
-
-[CocoaPods](https://cocoapods.org/) 是针对 Objective-C 的依赖管理工具，它能够将使用类似 PLShortVideoKit 的第三方库的安装过程变得非常简单和自动化，你能够用下面的命令来安装它：
-
-```bash
-$ sudo gem install cocoapods
+```c
+[[FUManager shareManager] loadItems];
 ```
 
-### Podfile
+注：FUManager 的 shareManager 函数中会对 SDK 进行初始化，并设置默认的美颜参数。
 
-为了使用 CoacoaPods 集成 PLShortVideoKit 到你的 Xcode 工程当中，你需要编写你的 `Podfile`
+### 三、图像处理
 
-```ruby
-target 'TargetName' do
-pod 'PLShortVideoKit'
-end
+在 `shortVideoRecorder: cameraSourceDidGetPixelBuffer: ` 方法中获取视频数据，并对图像进行处理：
+
+```c
+- (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
+    //此处可以做美颜/滤镜等处理
+    // 是否在录制时使用滤镜，默认是关闭的，NO
+    if (self.isUseFilterWhenRecording) {
+        PLSFilter *filter = self.filterGroup.currentFilter;
+        pixelBuffer = [filter process:pixelBuffer];
+    }
+    
+    UIDeviceOrientation iDeviceOrientation = [[UIDevice currentDevice] orientation];
+    //    BOOL mirrored = !self.kwSdkUI.kwSdk.cameraPositionBack;
+    BOOL mirrored = NO;
+    
+    cv_rotate_type cvMobileRotate;
+    
+    switch (iDeviceOrientation) {
+            case UIDeviceOrientationPortrait:
+            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
+            break;
+            
+            case UIDeviceOrientationLandscapeLeft:
+            cvMobileRotate = mirrored ?  CV_CLOCKWISE_ROTATE_90: CV_CLOCKWISE_ROTATE_270;
+            break;
+            
+            case UIDeviceOrientationLandscapeRight:
+            cvMobileRotate = mirrored ? CV_CLOCKWISE_ROTATE_270 : CV_CLOCKWISE_ROTATE_90;
+            break;
+            
+            case UIDeviceOrientationPortraitUpsideDown:
+            cvMobileRotate = CV_CLOCKWISE_ROTATE_180;
+            break;
+            
+        default:
+            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
+            break;
+    }
+    
+    /*********** 视频帧渲染 ***********/
+    [KWRenderManager processPixelBuffer:pixelBuffer];
+    
+    
+    /**     -----  FaceUnity  ----     **/
+    [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
+    /**     -----  FaceUnity  ----     **/
+    
+    return pixelBuffer;
+}
 ```
 
-#### Warnings
+### 四、切换道具及调整美颜参数
 
-**在使用了七牛的推流或连麦 SDK 的工程中，集成该短视频 SDK 会出现美颜库导致的符号冲突问题 duplicate symbol _OBJC_CLASS_ MuseProcessor，解决方法如下**
+本例中通过添加 FUAPIDemoBar 来实现切换道具及调整美颜参数的具体实现，FUAPIDemoBar 是快速集成用的UI，客户可自定义UI。
 
-```ruby
-target 'TargetName' do
-pod 'PLShortVideoKit/ex-libMuseProcessor'
-end
+1、在 RecordViewController.m 中添加头文件，并创建 demoBar 属性
+
+```C
+#import <FUAPIDemoBar/FUAPIDemoBar.h>
+
+@property (nonatomic, strong) FUAPIDemoBar *demoBar ;
 ```
 
-然后，运行如下的命令：
+2、在 demoBar 的 get 方法中对其进行初始化，并遵循代理  FUAPIDemoBarDelegate，实现代理方法 `demoBarDidSelectedItem:` 和 `demoBarBeautyParamChanged`以进一步实现道具的切换及美颜参数的调整。
 
-```bash
-$ pod install
+初始化
+
+```C
+// demobar 初始化
+-(FUAPIDemoBar *)demoBar {
+    if (!_demoBar) {
+        
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 44, self.view.frame.size.width, 164)];
+        
+        _demoBar.itemsDataSource = [FUManager shareManager].itemsDataSource;
+        _demoBar.selectedItem = [FUManager shareManager].selectedItem ;
+        
+        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource ;
+        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource ;
+        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName ;
+        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter ;
+        [_demoBar setFilterLevel:[FUManager shareManager].selectedFilterLevel forFilter:[FUManager shareManager].selectedFilter] ;
+        
+        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;
+        _demoBar.blurShape = [FUManager shareManager].blurShape ;
+        _demoBar.blurLevel = [FUManager shareManager].blurLevel ;
+        _demoBar.whiteLevel = [FUManager shareManager].whiteLevel ;
+        _demoBar.redLevel = [FUManager shareManager].redLevel;
+        _demoBar.eyelightingLevel = [FUManager shareManager].eyelightingLevel ;
+        _demoBar.beautyToothLevel = [FUManager shareManager].beautyToothLevel ;
+        _demoBar.faceShape = [FUManager shareManager].faceShape ;
+        
+        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel ;
+        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel ;
+        _demoBar.enlargingLevel_new = [FUManager shareManager].enlargingLevel ;
+        _demoBar.thinningLevel_new = [FUManager shareManager].thinningLevel ;
+        _demoBar.jewLevel = [FUManager shareManager].jewLevel ;
+        _demoBar.foreheadLevel = [FUManager shareManager].foreheadLevel ;
+        _demoBar.noseLevel = [FUManager shareManager].noseLevel ;
+        _demoBar.mouthLevel = [FUManager shareManager].mouthLevel ;
+        
+        _demoBar.delegate = self;
+    }
+    return _demoBar ;
+}
 ```
 
-## 4. PLShortVideoKit 文档
+切换贴纸代理方法
 
-请参考开发者中心文档：[PLShortVideoKit 文档](https://developer.qiniu.com/pili/sdk/3733/short-video-ios-sdk)
+```C
+/**      FUAPIDemoBarDelegate       **/
 
-## 5. 声明
+// 切换贴纸
+- (void)demoBarDidSelectedItem:(NSString *)itemName {
+    
+    [[FUManager shareManager] loadItem:itemName];
+}
+```
 
-本短视频 SDK 需授权方可使用，可通过 400-808-9176 转 2 号线联系七牛商务咨询，或者 [通过工单](https://support.qiniu.com/?ref=developer.qiniu.com) 联系七牛的技术支持。
+更新美颜参数方法
 
-## 6. 反馈及意见
+```C
+// 更新美颜参数
+- (void)demoBarBeautyParamChanged {
+    
+    [FUManager shareManager].skinDetectEnable = _demoBar.skinDetectEnable;
+    [FUManager shareManager].blurShape = _demoBar.blurShape;
+    [FUManager shareManager].blurLevel = _demoBar.blurLevel ;
+    [FUManager shareManager].whiteLevel = _demoBar.whiteLevel;
+    [FUManager shareManager].redLevel = _demoBar.redLevel;
+    [FUManager shareManager].eyelightingLevel = _demoBar.eyelightingLevel;
+    [FUManager shareManager].beautyToothLevel = _demoBar.beautyToothLevel;
+    [FUManager shareManager].faceShape = _demoBar.faceShape;
+    [FUManager shareManager].enlargingLevel = _demoBar.enlargingLevel;
+    [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
+    [FUManager shareManager].enlargingLevel_new = _demoBar.enlargingLevel_new;
+    [FUManager shareManager].thinningLevel_new = _demoBar.thinningLevel_new;
+    [FUManager shareManager].jewLevel = _demoBar.jewLevel;
+    [FUManager shareManager].foreheadLevel = _demoBar.foreheadLevel;
+    [FUManager shareManager].noseLevel = _demoBar.noseLevel;
+    [FUManager shareManager].mouthLevel = _demoBar.mouthLevel;
+    
+    [FUManager shareManager].selectedFilter = _demoBar.selectedFilter ;
+    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
+}
+```
 
-当你遇到任何问题时，可以通过在 GitHub 的 repo 提交 issues 来反馈问题，请尽可能的描述清楚遇到的问题，如果有错误信息也一同附带，并且在 Labels 中指明类型为 bug 或者其他。
+3、在 `viewDidLoad:` 中将 demoBar 添加到页面上
 
-[通过这里查看已有的 issues 和提交 Bug](https://github.com/pili-engineering/PLShortVideoKit/issues)
+```C
+[self.view addSubview:self.demoBar];
+```
 
+### 五、道具销毁
 
+视频录制结束时需要调用 `[[FUManager shareManager] destoryItems]`  销毁道具。
 
-
-
-
-
+**快速集成完毕，关于 FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)**

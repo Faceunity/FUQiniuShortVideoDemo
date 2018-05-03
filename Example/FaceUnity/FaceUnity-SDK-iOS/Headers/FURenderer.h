@@ -217,9 +217,9 @@ typedef struct{
  @param itemCount 句柄数组中包含的句柄个数
  @param flip 道具镜像使能，如果设置为 YES 可以将道具做镜像操作
  @param masks 指定items中的道具画在多张人脸中的哪一张脸上的 int 数组，其长度要与 items 长度一致，
-        masks中的每一位与items中的每一位道具一一对应。使用方法为：要使某一个道具画在检测到的第一张人脸上，
-        对应的int值为 "2的0次方"，画在第二张人脸上对应的int值为 “2的1次方”，第三张人脸对应的int值为 “2的2次方”，
-        以此类推。例：masks = {pow(2,0),pow(2,1),pow(2,2)....},值得注意的是美颜道具对应的int值为 0。
+ masks中的每一位与items中的每一位道具一一对应。使用方法为：要使某一个道具画在检测到的第一张人脸上，
+ 对应的int值为 "2的0次方"，画在第二张人脸上对应的int值为 “2的1次方”，第三张人脸对应的int值为 “2的2次方”，
+ 以此类推。例：masks = {pow(2,0),pow(2,1),pow(2,2)....},值得注意的是美颜道具对应的int值为 0。
  @return 被处理过的的图像数据，与传入的 pixelBuffer 为同一个 pixelBuffer
  */
 - (CVPixelBufferRef)renderPixelBuffer:(CVPixelBufferRef)pixelBuffer withFrameId:(int)frameid items:(int*)items itemCount:(int)itemCount flipx:(BOOL)flip masks:(void*)masks;

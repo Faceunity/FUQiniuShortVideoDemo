@@ -201,30 +201,6 @@ static FUManager *shareManager = NULL;
 /**设置美颜参数*/
 - (void)setBeautyParams {
     
-    if (self.faceShape == 4) {
-        [FURenderer itemSetParam:items[0] withName:@"facewarp_version" value:@(1)]; //新版美颜
-        
-        [FURenderer itemSetParam:items[0] withName:@"face_shape" value:@(3)]; //美型类型 (0、1、2、3) 默认：3，女神：0，网红：1，自然：2
-        [FURenderer itemSetParam:items[0] withName:@"eye_enlarging" value:@(self.enlargingLevel_new)]; //大眼 (0~1)
-        [FURenderer itemSetParam:items[0] withName:@"cheek_thinning" value:@(self.thinningLevel_new)]; //瘦脸 (0~1)
-        
-        [FURenderer itemSetParam:items[0] withName:@"intensity_chin" value:@(self.jewLevel)]; /**下巴 (0~1)*/
-        [FURenderer itemSetParam:items[0] withName:@"intensity_nose" value:@(self.noseLevel)];/**鼻子 (0~1)*/
-        [FURenderer itemSetParam:items[0] withName:@"intensity_forehead" value:@(self.foreheadLevel)];/**额头 (0~1)*/
-        [FURenderer itemSetParam:items[0] withName:@"intensity_mouth" value:@(self.mouthLevel)];/**嘴型 (0~1)*/
-    }else {
-        
-        [FURenderer itemSetParam:items[0] withName:@"facewarp_version" value:@(0)]; //老版美颜
-        
-        [FURenderer itemSetParam:items[0] withName:@"face_shape" value:@(self.faceShape)]; //美型类型 (0、1、2、3) 默认：3，女神：0，网红：1，自然：2
-        [FURenderer itemSetParam:items[0] withName:@"eye_enlarging" value:@(self.enlargingLevel)]; //大眼 (0~1)
-        [FURenderer itemSetParam:items[0] withName:@"cheek_thinning" value:@(self.thinningLevel)]; //瘦脸 (0~1)
-        
-        [FURenderer itemSetParam:items[0] withName:@"intensity_chin" value:@(0)]; /**下巴 (0~1)*/
-        [FURenderer itemSetParam:items[0] withName:@"intensity_nose" value:@(0)];/**鼻子 (0~1)*/
-        [FURenderer itemSetParam:items[0] withName:@"intensity_forehead" value:@(0)];/**额头 (0~1)*/
-        [FURenderer itemSetParam:items[0] withName:@"intensity_mouth" value:@(0)];/**嘴型 (0~1)*/
-    }
     
     [FURenderer itemSetParam:items[0] withName:@"skin_detect" value:@(self.skinDetectEnable)]; //是否开启皮肤检测
     [FURenderer itemSetParam:items[0] withName:@"heavy_blur" value:@(self.blurShape)]; // 美肤类型 (0、1、) 清晰：0，朦胧：1
@@ -233,6 +209,15 @@ static FUManager *shareManager = NULL;
     [FURenderer itemSetParam:items[0] withName:@"red_level" value:@(self.redLevel)]; //红润 (0~1)
     [FURenderer itemSetParam:items[0] withName:@"eye_bright" value:@(self.eyelightingLevel)]; // 亮眼
     [FURenderer itemSetParam:items[0] withName:@"tooth_whiten" value:@(self.beautyToothLevel)];// 美牙
+    
+    [FURenderer itemSetParam:items[0] withName:@"face_shape" value:@(self.faceShape)]; //美型类型 (0、1、2、3、4)女神：0，网红：1，自然：2，默认：3，自定义：4
+    
+    [FURenderer itemSetParam:items[0] withName:@"eye_enlarging" value:self.faceShape == 4 ? @(self.enlargingLevel_new) : @(self.enlargingLevel)]; //大眼 (0~1)
+    [FURenderer itemSetParam:items[0] withName:@"cheek_thinning" value:self.faceShape == 4 ? @(self.thinningLevel_new) : @(self.thinningLevel)]; //瘦脸 (0~1)
+    [FURenderer itemSetParam:items[0] withName:@"intensity_chin" value:@(self.jewLevel)]; /**下巴 (0~1)*/
+    [FURenderer itemSetParam:items[0] withName:@"intensity_nose" value:@(self.noseLevel)];/**鼻子 (0~1)*/
+    [FURenderer itemSetParam:items[0] withName:@"intensity_forehead" value:@(self.foreheadLevel)];/**额头 (0~1)*/
+    [FURenderer itemSetParam:items[0] withName:@"intensity_mouth" value:@(self.mouthLevel)];/**嘴型 (0~1)*/
     
     [FURenderer itemSetParam:items[0] withName:@"filter_name" value:self.selectedFilter]; //滤镜名称
     [FURenderer itemSetParam:items[0] withName:@"filter_level" value:@(self.selectedFilterLevel)]; //滤镜程度

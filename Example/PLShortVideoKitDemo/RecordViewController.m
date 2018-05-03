@@ -809,6 +809,10 @@ FUAPIDemoBarDelegate
 // 切换前后置摄像头
 - (void)toggleCameraButtonEvent:(id)sender {
     [self.shortVideoRecorder toggleCamera];
+    
+    /**     -------- FaceUnity --------       **/
+    [[FUManager shareManager] onCameraChange];
+    /**     -------- FaceUnity --------       **/
 }
 
 // 七牛滤镜
