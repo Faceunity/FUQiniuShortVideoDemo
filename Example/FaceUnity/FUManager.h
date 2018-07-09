@@ -82,4 +82,7 @@
 
 /**获取错误信息*/
 - (NSString *)getError;
+
+// 音乐道具设置时间
+- (void)musicFilterSetMusicTime ;
 @end

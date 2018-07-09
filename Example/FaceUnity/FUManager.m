@@ -10,6 +10,7 @@
 #import "FURenderer.h"
 #import "authpack.h"
 #import <sys/utsname.h>
+#import "FUMusicPlayer.h"
 
 @interface FUManager ()
 {
@@ -66,7 +67,7 @@ static FUManager *shareManager = NULL;
 /*设置默认参数*/
 - (void)setDefaultParameters {
     
-    self.itemsDataSource = @[ @"noitem", @"fengya_ztt_fu", @"hudie_lm_fu", @"juanhuzi_lm_fu", @"mask_hat", @"touhua_ztt_fu", @"yazui", @"yuguan"];
+    self.itemsDataSource = @[ @"noitem", @"douyin_01", @"douyin_02", @"fengya_ztt_fu", @"hudie_lm_fu", @"juanhuzi_lm_fu", @"mask_hat", @"touhua_ztt_fu", @"yazui", @"yuguan"];
     self.selectedItem = @"fengya_ztt_fu" ;
     
     self.filtersDataSource = @[@"origin", @"delta", @"electric", @"slowlived", @"tokyo", @"warm"];
@@ -159,6 +160,7 @@ static FUManager *shareManager = NULL;
  */
 - (void)loadItem:(NSString *)itemName
 {
+    self.selectedItem = itemName ;
     /**如果取消了道具的选择，直接销毁道具*/
     if ([itemName isEqual: @"noitem"] || itemName == nil)
     {
@@ -229,11 +231,21 @@ static FUManager *shareManager = NULL;
     /**设置美颜参数*/
     [self setBeautyParams];
     
+    // 如果是音乐滤镜 就设置时间
+    if ([self.selectedItem hasPrefix:@"douyin"]) {
+        [self musicFilterSetMusicTime];
+    }
+    
     /*Faceunity核心接口，将道具及美颜效果绘制到pixelBuffer中，执行完此函数后pixelBuffer即包含美颜及贴纸效果*/
     CVPixelBufferRef buffer = [[FURenderer shareRenderer] renderPixelBuffer:pixelBuffer withFrameId:frameID items:items itemCount:sizeof(items)/sizeof(int) flipx:YES];//flipx 参数设为YES可以使道具做水平方向的镜像翻转
     frameID += 1;
     
     return buffer;
+}
+
+- (void)musicFilterSetMusicTime {
+    
+    [FURenderer itemSetParam:items[1] withName:@"music_time" value:@([FUMusicPlayer sharePlayer].currentTime * 1000 + 50)];//需要加50ms的延迟
 }
 
 /**获取图像中人脸中心点*/

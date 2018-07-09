@@ -26,6 +26,7 @@
 
 #import "FUManager.h"
 #import <FUAPIDemoBar/FUAPIDemoBar.h>
+#import "FUMusicPlayer.h"
 
 #define AlertViewShow(msg) [[[UIAlertView alloc] initWithTitle:@"warning" message:[NSString stringWithFormat:@"%@", msg] delegate:nil cancelButtonTitle:@"ok" otherButtonTitles:nil] show]
 
@@ -163,6 +164,8 @@ FUAPIDemoBarDelegate
     
     /**     -------- FaceUnity --------       **/
     
+    [self addObserver];
+    
     [[FUManager shareManager] loadItems];
     [self.view addSubview:self.demoBar ];
     /**     -------- FaceUnity --------       **/
@@ -211,6 +214,14 @@ FUAPIDemoBarDelegate
 - (void)demoBarDidSelectedItem:(NSString *)itemName {
     
     [[FUManager shareManager] loadItem:itemName];
+    
+    if ([itemName hasPrefix:@"douyin"]) {
+        [[FUMusicPlayer sharePlayer] playMusic:@"douyin.mp3"] ;
+    }else {
+        if ([[FUMusicPlayer sharePlayer] isPlaying]) {
+            [[FUMusicPlayer sharePlayer] pause] ;
+        }
+    }
 }
 
 - (void)demoBarBeautyParamChanged {
@@ -313,6 +324,34 @@ FUAPIDemoBarDelegate
 
 /**     -------- FaceUnity --------       **/
 
+- (void)addObserver{
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+}
+
+
+- (void)willResignActive
+{
+    if ([[FUMusicPlayer sharePlayer] isPlaying]) {
+        [[FUMusicPlayer sharePlayer] pause] ;
+    }
+}
+
+- (void)willEnterForeground
+{
+    if ([[FUManager shareManager].selectedItem  hasPrefix:@"douyin"]) {
+        [[FUMusicPlayer sharePlayer] playMusic:@"douyin.mp3"] ;
+    }
+}
+
+- (void)didBecomeActive
+{
+    if ([[FUManager shareManager].selectedItem  hasPrefix:@"douyin"]) {
+        [[FUMusicPlayer sharePlayer] playMusic:@"douyin.mp3"] ;
+    }
+}
+
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -324,6 +363,8 @@ FUAPIDemoBarDelegate
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    
+    [[FUMusicPlayer sharePlayer] pause];
     
     [self.shortVideoRecorder stopCaptureSession];
 }
