@@ -1,6 +1,6 @@
 # FUQiniuShortVideoDemo 快速接入文档
 
-FUQiNiuMediaStreamingKitDemo 是集成了 [Faceunity](https://github.com/Faceunity/FULiveDemo/tree/dev) 面部跟踪和虚拟道具功能和七牛短视频功能的 Demo。
+FUQiniuShortVideoDemo 是集成了 [Faceunity](https://github.com/Faceunity/FULiveDemo/tree/dev) 面部跟踪和虚拟道具功能和七牛短视频功能的 Demo。
 
 本文是 FaceUnity SDK 快速对接七牛短视频的导读说明，关于 FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)
 
@@ -24,6 +24,8 @@ FUQiNiuMediaStreamingKitDemo 是集成了 [Faceunity](https://github.com/Faceuni
 在 `shortVideoRecorder: cameraSourceDidGetPixelBuffer: ` 方法中获取视频数据，并对图像进行处理：
 
 ```c
+#pragma mark - PLShortVideoRecorderDelegate 摄像头采集的视频数据的回调
+/// @abstract 获取到摄像头原数据时的回调, 便于开发者做滤镜等处理，需要注意的是这个回调在 camera 数据的输出线程，请不要做过于耗时的操作，否则可能会导致帧率下降
 - (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
     //此处可以做美颜/滤镜等处理
     // 是否在录制时使用滤镜，默认是关闭的，NO
@@ -31,39 +33,6 @@ FUQiNiuMediaStreamingKitDemo 是集成了 [Faceunity](https://github.com/Faceuni
         PLSFilter *filter = self.filterGroup.currentFilter;
         pixelBuffer = [filter process:pixelBuffer];
     }
-    
-    UIDeviceOrientation iDeviceOrientation = [[UIDevice currentDevice] orientation];
-    //    BOOL mirrored = !self.kwSdkUI.kwSdk.cameraPositionBack;
-    BOOL mirrored = NO;
-    
-    cv_rotate_type cvMobileRotate;
-    
-    switch (iDeviceOrientation) {
-            case UIDeviceOrientationPortrait:
-            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
-            break;
-            
-            case UIDeviceOrientationLandscapeLeft:
-            cvMobileRotate = mirrored ?  CV_CLOCKWISE_ROTATE_90: CV_CLOCKWISE_ROTATE_270;
-            break;
-            
-            case UIDeviceOrientationLandscapeRight:
-            cvMobileRotate = mirrored ? CV_CLOCKWISE_ROTATE_270 : CV_CLOCKWISE_ROTATE_90;
-            break;
-            
-            case UIDeviceOrientationPortraitUpsideDown:
-            cvMobileRotate = CV_CLOCKWISE_ROTATE_180;
-            break;
-            
-        default:
-            cvMobileRotate = CV_CLOCKWISE_ROTATE_0;
-            break;
-    }
-    
-    /*********** 视频帧渲染 ***********/
-    [KWRenderManager processPixelBuffer:pixelBuffer];
-    
-    
     /**     -----  FaceUnity  ----     **/
     [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
     /**     -----  FaceUnity  ----     **/

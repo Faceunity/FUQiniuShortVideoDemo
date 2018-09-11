@@ -46,6 +46,8 @@
 @property (nonatomic, strong) NSArray<NSString *> *itemsDataSource;  /**道具分类数组*/
 @property (nonatomic, strong) NSString *selectedItem;     /**选中的道具名称*/
 
+@property (nonatomic, assign) BOOL isShown ;
+
 + (FUManager *)shareManager;
 
 /**初始化Faceunity,加载道具*/
@@ -62,6 +64,9 @@
 
 /**将道具绘制到pixelBuffer*/
 - (CVPixelBufferRef)renderItemsToPixelBuffer:(CVPixelBufferRef)pixelBuffer;
+
+/* 针对腾讯兼容接口*/
+- (int)renderItemWithTexture:(int)texture Width:(int)width Height:(int)height ;
 
 /**获取75个人脸特征点*/
 - (void)getLandmarks:(float *)landmarks;
@@ -82,7 +87,4 @@
 
 /**获取错误信息*/
 - (NSString *)getError;
-
-// 音乐道具设置时间
-- (void)musicFilterSetMusicTime ;
 @end

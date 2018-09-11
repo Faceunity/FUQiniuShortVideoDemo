@@ -28,6 +28,8 @@
 /**
  @abstract 视频转码后的地址
  
+ @warning 生成 URL 需使用 [NSURL fileURLWithPath:fileName] 方式，让 URL 的 scheme 合法（file://，http://，https:// 等）。
+ 
  @since      v1.0.5
  */
 @property (strong, nonatomic) NSURL *outputURL;
@@ -45,6 +47,22 @@
  @since      v1.0.5
  */
 @property (assign, nonatomic) PLSFilePreset outputFilePreset;
+
+/**
+ @abstract 转码后视频的码率，默认为 6000 * 1000 bps，对应 PLSFilePresetHighestQuality
+ @warn 只设置 outputFilePreset，不设置 bitrate，内部 bitrate 默认值如下：
+ PLSFilePresetLowQuality,      默认对应 700 * 1000 bps
+ PLSFilePresetMediumQuality,   默认对应 3000 * 1000 bps
+ PLSFilePresetHighestQuality,  默认对应 6000 * 1000 bps
+ PLSFilePreset640x480,         默认对应 2000 * 1000 bps
+ PLSFilePreset960x540,         默认对应 3000 * 1000 bps
+ PLSFilePreset1280x720,        默认对应 4000 * 1000 bps
+ PLSFilePreset1920x1080,       默认对应 6000 * 1000  bps
+ 如果 bitrate 的值大于原始视频的视频码率，则重置 bitrate 的值为原始视频的视频码率。
+ 
+ @since      v1.11.0
+ */
+@property (assign, nonatomic) float bitrate;
 
 /**
  @abstract 转码的进度
@@ -78,6 +96,31 @@
  @since      v1.8.0
  */
 @property (assign, nonatomic) PLSPreviewOrientation rotateOrientation;
+
+/**
+ @abstract 视频剪裁区域，默认为 CGRectZero，不剪裁. 如果不为 emptyRect，会覆盖 @property outputFilePreset,
+           有效范围 [CGRectZero ~ {0, 0, videoOriginWidth, videoOriginHeight}]
+ 
+ @since      v1.13.0
+ */
+@property (assign, nonatomic) CGRect videoSelectedRect;
+
+/**
+ @abstract 导出视频的宽高，仅当 videoSelectedRect 不是 emptyRect 时，destVideoSize 才有效。默认为 CGSizeZero, 此时导出
+           视频的宽高为 videoSelectedRect.size. 每次设置 destVideoSize 的值的时候，bitrate 都会自动调整到合适的值。如果想
+           自定义输出码率，设置 destVideoSize 之后，需要再次设置 bitrate 的值
+ 
+ @since      v1.13.0
+ */
+@property (assign, nonatomic) CGSize destVideoSize;
+
+/**
+ @abstract 导出视频的帧率，默认 0，有效范围 [0 ~ 原视频帧率]，当为 0 的时候，导出视频帧率等于原视频帧率，
+           当设置的帧率大于原视频帧率时，会被自动调整为原视频帧率
+ 
+ @since      v1.13.0
+ */
+@property (assign, nonatomic) float videoFrameRate;
 
 /**
  @abstract 视频转码完成的 block
@@ -133,6 +176,14 @@
  @since      v1.0.5
  */
 - (void)cancelTranscoding;
+
+/**
+ *  返回 AVAsset 在 bounds 大小的 view 中播放，有视频部分的 frame
+ *
+ 
+ @since      v1.13.0
+ */
++ (CGRect)videoDisplay:(AVAsset *)asset bounds:(CGRect)bounds rotate:(PLSPreviewOrientation)previewOrientation;
 
 @end
 

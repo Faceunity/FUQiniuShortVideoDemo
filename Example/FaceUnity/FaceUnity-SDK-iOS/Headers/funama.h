@@ -377,6 +377,7 @@ FUNAMA_API int fuGetFaceInfo(int face_id, char* name, float* pret, int num);
 FUNAMA_API int fuGetFaceIdentifier(int face_id);
 
 /**
+\ warning: deprecated API，use fuBindItems instead
 \brief Bind items to an avatar, already bound items won't be unbound
 \param avatar_item is the avatar item handle
 \param p_items points to a list of item handles to be bound to the avatar
@@ -387,6 +388,7 @@ FUNAMA_API int fuGetFaceIdentifier(int face_id);
 */
 FUNAMA_API int fuAvatarBindItems(int avatar_item, int* p_items,int n_items, int* p_contracts,int n_contracts);
 /**
+\warning: deprecated API，use fuUnindItems instead
 \brief Unbind items from an avatar
 \param avatar_item is the avatar item handle
 \param p_items points to a list of item handles to be unbound from the avatar
@@ -396,7 +398,27 @@ FUNAMA_API int fuAvatarBindItems(int avatar_item, int* p_items,int n_items, int*
 FUNAMA_API int fuAvatarUnbindItems(int avatar_item, int* p_items,int n_items);
 
 //
+/**
+\brief Bind items to target item, target item act as a controller,target item should has 'OnBind' function, already bound items won't be unbound
+\param item_src is the target item handle
+\param p_items points to a list of item handles to be bound to the  target item 
+\param n_items is the number of item handles in p_items
+\return the number of items newly bound to the avatar
+*/
 FUNAMA_API int fuBindItems(int item_src, int* p_items,int n_items);
+/**
+\brief Unbind items from the target item
+\param item_src is the target item handle
+\param p_items points to a list of item handles to be unbound from the target item
+\param n_items is the number of item handles in p_items
+\return the number of items unbound from the target item
+*/
+FUNAMA_API int fuUnbindItems(int item_src, int* p_items,int n_items);
+/**
+\brief Unbind all items from the target item
+\param item_src is the target item handle
+\return the number of items unbound from the target item
+*/
 FUNAMA_API int fuUnbindAllItems(int item_src);
 
 /**
@@ -518,6 +540,17 @@ FUNAMA_API int fuLoadExtendedARData(void* data,int sz);
 FUNAMA_API int fuLoadAnimModel(void* dat, int dat_sz);
 FUNAMA_API int fuLoadAnimModelSrc(void* dat, int dat_sz);
 
+/**
+\brief Load Tongue Detector data, to support tongue animation.
+\param data - the pointer to tongue model data 'tongue.bundle', 
+	which is along beside lib files in SDK package
+\param sz - the data size, we use plain int to avoid cross-language compilation issues
+\return zero for failure, one for success
+*/
+FUNAMA_API int fuLoadTongueModel(void* dat, int dat_sz);
+
+
+
 FUNAMA_API void fuSetStrictTracking(int i);
 
 /**
@@ -533,6 +566,11 @@ FUNAMA_API void fuSetDefaultRotationMode(int rotationMode);
 */
 FUNAMA_API int fuGetModuleCode(int i);
 
+/**
+\brief Turn on or turn off async track face
+\param enable > 0 means turning on, enable <= 0 means turning off
+*/
+FUNAMA_API int fuSetASYNCTrackFace(int enable);
 
 /*------------------------------------------*/
 /*************** Deprecated *****************/
