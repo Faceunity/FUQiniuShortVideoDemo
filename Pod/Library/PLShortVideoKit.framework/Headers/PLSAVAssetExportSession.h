@@ -111,6 +111,18 @@
 @property (assign, nonatomic) CGSize outputVideoSize;
 
 /**
+ @brief 视频的帧率，默认为原视频的帧率. 如果设置的帧率大于原视频的帧率，将会使用原视频的帧率作为导出视频的帧率，
+        没有特别的需求不建议使用此属性.
+ 
+        使用此属性的场景举例：在编辑阶段对帧率为 60 FPS 的视频进行 “极速“ 处理，然后使用 PLSAVAssetExportSession
+        导出这个极速处理的视频，如果不加帧率限制，导出的将会是 120 FPS 的视频，iPhone 设备播放 120 FPS 的视频会存在
+        问题。此时可以使用此属性将导出视频的帧率限制在 60 FPS 以内。
+ 
+ @since      v1.15.0
+ */
+@property (assign, nonatomic) float outputVideoFrameRate;
+
+/**
  @brief 是否设置便于网络环境下的传输，默认为 YES
  
  @since      v1.1.0
@@ -176,7 +188,7 @@
 - (void)addFilter:(NSString *_Nullable)colorImagePath;
 
 /**
- *  添加 MV 图层
+ *  添加 MV 图层方法 1, 相当于 addMVLayerWithColor:colorURL alpha:alphaURL timeRange:kCMTimeRangeZero loopEnable:NO
  *
  *  @param colorURL 彩色层视频的地址
  *  @param alphaURL 被彩色层当作透明层的视频的地址
@@ -184,6 +196,19 @@
  @since      v1.5.0
  */
 - (void)addMVLayerWithColor:(NSURL *_Nullable)colorURL alpha:(NSURL *_Nullable)alphaURL;
+
+
+/**
+ *  添加 MV 图层方法 2
+ *
+ *  @param colorURL 彩色层视频的地址
+ *  @param alphaURL 被彩色层当作透明层的视频的地址
+ *  @param timeRange  选取 MV 文件的时间段, 如果选取整个 MV，直接传入 kCMTimeRangeZero 即可
+ *  @param loopEnable 当 MV 时长(timeRange.duration)小于视频时长时，是否循环播放 MV
+ 
+ @since      v1.14.0
+ */
+- (void)addMVLayerWithColor:(NSURL *)colorURL alpha:(NSURL *)alphaURL timeRange:(CMTimeRange)timeRange loopEnable:(BOOL)loopEnable;
 
 @end
 

@@ -17,9 +17,10 @@
 #import "PLSFilterGroup.h"
 #import "PLSViewRecorderManager.h"
 #import "PLSRateButtonView.h"
+
 #import "FUManager.h"
 #import <FUAPIDemoBar/FUAPIDemoBar.h>
-
+#import "FUMusicPlayer.h"
 #define AlertViewShow(msg) [[[UIAlertView alloc] initWithTitle:@"warning" message:[NSString stringWithFormat:@"%@", msg] delegate:nil cancelButtonTitle:@"ok" otherButtonTitles:nil] show]
 
 #define PLS_CLOSE_CONTROLLER_ALERTVIEW_TAG 10001
@@ -40,6 +41,7 @@ UICollectionViewDataSource,
 UICollectionViewDelegateFlowLayout,
 PLSViewRecorderManagerDelegate,
 PLSRateButtonViewDelegate,
+
 FUAPIDemoBarDelegate
 >
 
@@ -93,12 +95,10 @@ FUAPIDemoBarDelegate
 // 录制前是否开启自动检测设备方向调整视频拍摄的角度（竖屏、横屏）
 @property (assign, nonatomic) BOOL isUseAutoCheckDeviceOrientationBeforeRecording;
 
-
 /**     FaceUnity       **/
 
 @property (nonatomic, strong) FUAPIDemoBar *demoBar ;
 /**     FaceUnity       **/
-
 @end
 
 @implementation RecordViewController
@@ -142,11 +142,117 @@ FUAPIDemoBarDelegate
     [self setupGestureRecognizer];
     
     // --------------------------
-    
     /**     -------- FaceUnity --------       **/
+    
+    [self addObserver];
+    
     [[FUManager shareManager] loadItems];
     [self.view addSubview:self.demoBar ];
     /**     -------- FaceUnity --------       **/
+}
+
+/**     -------- FaceUnity --------       **/
+-(FUAPIDemoBar *)demoBar {
+    if (!_demoBar) {
+        
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0,CGRectGetMinY(self.recordToolboxView.frame) + CGRectGetMinY(self.rateButtonView.frame) - 184, self.view.frame.size.width, 164)];
+        
+        _demoBar.itemsDataSource = [FUManager shareManager].itemsDataSource;
+        _demoBar.selectedItem = [FUManager shareManager].selectedItem ;
+        
+        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource ;
+        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource ;
+        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName ;
+        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter ;
+        [_demoBar setFilterLevel:[FUManager shareManager].selectedFilterLevel forFilter:[FUManager shareManager].selectedFilter] ;
+        
+        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;
+        _demoBar.blurShape = [FUManager shareManager].blurShape ;
+        _demoBar.blurLevel = [FUManager shareManager].blurLevel ;
+        _demoBar.whiteLevel = [FUManager shareManager].whiteLevel ;
+        _demoBar.redLevel = [FUManager shareManager].redLevel;
+        _demoBar.eyelightingLevel = [FUManager shareManager].eyelightingLevel ;
+        _demoBar.beautyToothLevel = [FUManager shareManager].beautyToothLevel ;
+        _demoBar.faceShape = [FUManager shareManager].faceShape ;
+        
+        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel ;
+        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel ;
+        _demoBar.enlargingLevel_new = [FUManager shareManager].enlargingLevel_new ;
+        _demoBar.thinningLevel_new = [FUManager shareManager].thinningLevel_new ;
+        _demoBar.jewLevel = [FUManager shareManager].jewLevel ;
+        _demoBar.foreheadLevel = [FUManager shareManager].foreheadLevel ;
+        _demoBar.noseLevel = [FUManager shareManager].noseLevel ;
+        _demoBar.mouthLevel = [FUManager shareManager].mouthLevel ;
+        
+        _demoBar.delegate = self;
+    }
+    return _demoBar ;
+}
+
+/**      FUAPIDemoBarDelegate       **/
+
+- (void)demoBarDidSelectedItem:(NSString *)itemName {
+    
+    [[FUManager shareManager] loadItem:itemName];
+    
+    if ([itemName hasPrefix:@"douyin"]) {
+        [[FUMusicPlayer sharePlayer] playMusic:@"douyin.mp3"] ;
+    }else {
+        if ([[FUMusicPlayer sharePlayer] isPlaying]) {
+            [[FUMusicPlayer sharePlayer] pause] ;
+        }
+    }
+}
+
+- (void)demoBarBeautyParamChanged {
+    
+    [FUManager shareManager].skinDetectEnable = _demoBar.skinDetectEnable;
+    [FUManager shareManager].blurShape = _demoBar.blurShape;
+    [FUManager shareManager].blurLevel = _demoBar.blurLevel ;
+    [FUManager shareManager].whiteLevel = _demoBar.whiteLevel;
+    [FUManager shareManager].redLevel = _demoBar.redLevel;
+    [FUManager shareManager].eyelightingLevel = _demoBar.eyelightingLevel;
+    [FUManager shareManager].beautyToothLevel = _demoBar.beautyToothLevel;
+    [FUManager shareManager].faceShape = _demoBar.faceShape;
+    [FUManager shareManager].enlargingLevel = _demoBar.enlargingLevel;
+    [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
+    [FUManager shareManager].enlargingLevel_new = _demoBar.enlargingLevel_new;
+    [FUManager shareManager].thinningLevel_new = _demoBar.thinningLevel_new;
+    [FUManager shareManager].jewLevel = _demoBar.jewLevel;
+    [FUManager shareManager].foreheadLevel = _demoBar.foreheadLevel;
+    [FUManager shareManager].noseLevel = _demoBar.noseLevel;
+    [FUManager shareManager].mouthLevel = _demoBar.mouthLevel;
+    
+    [FUManager shareManager].selectedFilter = _demoBar.selectedFilter ;
+    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
+}
+
+- (void)addObserver{
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+}
+
+
+- (void)willResignActive
+{
+    if ([[FUMusicPlayer sharePlayer] isPlaying]) {
+        [[FUMusicPlayer sharePlayer] pause] ;
+    }
+}
+
+- (void)willEnterForeground
+{
+    if ([[FUManager shareManager].selectedItem  hasPrefix:@"douyin"]) {
+        [[FUMusicPlayer sharePlayer] playMusic:@"douyin.mp3"] ;
+    }
+}
+
+- (void)didBecomeActive
+{
+    if ([[FUManager shareManager].selectedItem  hasPrefix:@"douyin"]) {
+        [[FUMusicPlayer sharePlayer] playMusic:@"douyin.mp3"] ;
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -159,6 +265,7 @@ FUAPIDemoBarDelegate
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    [[FUMusicPlayer sharePlayer] pause];
     
     [self.shortVideoRecorder stopCaptureSession];
 }
@@ -401,22 +508,7 @@ FUAPIDemoBarDelegate
     [self.view addSubview:self.recordToolboxView];
 
     
-    // 倍数拍摄
-    self.titleArray = @[@"极慢", @"慢", @"正常", @"快", @"极快"];
-    CGFloat rateTopSapce;
-    if (PLS_SCREEN_HEIGHT > 568) {
-        rateTopSapce = 35;
-    } else{
-        rateTopSapce = 30;
-    }
-    self.rateButtonView = [[PLSRateButtonView alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH/2 - 130, rateTopSapce, 260, 34) defaultIndex:2];
-    self.rateButtonView.hidden = NO;
-    self.titleIndex = 2;
-    CGFloat countSpace = 200 /self.titleArray.count / 6;
-    self.rateButtonView.space = countSpace;
-    self.rateButtonView.staticTitleArray = self.titleArray;
-    self.rateButtonView.rateDelegate = self;
-    [self.recordToolboxView addSubview:_rateButtonView];
+
 
     
     // 录制视频的操作按钮
@@ -427,6 +519,24 @@ FUAPIDemoBarDelegate
     [self.recordButton setImage:[UIImage imageNamed:@"btn_record_a"] forState:UIControlStateNormal];
     [self.recordButton addTarget:self action:@selector(recordButtonEvent:) forControlEvents:UIControlEventTouchUpInside];
     [self.recordToolboxView addSubview:self.recordButton];
+    
+    
+    // 倍速拍摄
+    self.titleArray = @[@"极慢", @"慢", @"正常", @"快", @"极快"];
+//    CGFloat rateTopSapce;
+//    if (PLS_SCREEN_HEIGHT > 568) {
+//        rateTopSapce = 35;
+//    } else{
+//        rateTopSapce = 30;
+//    }
+    self.rateButtonView = [[PLSRateButtonView alloc] initWithFrame:CGRectMake(PLS_SCREEN_WIDTH/2 - 130, CGRectGetMinY(self.recordButton.frame) - 40, 260, 34) defaultIndex:2];
+    self.rateButtonView.hidden = NO;
+    self.titleIndex = 2;
+    CGFloat countSpace = 200 /self.titleArray.count / 6;
+    self.rateButtonView.space = countSpace;
+    self.rateButtonView.staticTitleArray = self.titleArray;
+    self.rateButtonView.rateDelegate = self;
+    [self.recordToolboxView addSubview:_rateButtonView];
     
     // 删除视频片段的按钮
     CGPoint center = self.recordButton.center;
@@ -609,6 +719,10 @@ FUAPIDemoBarDelegate
 // 切换前后置摄像头
 - (void)toggleCameraButtonEvent:(id)sender {
     [self.shortVideoRecorder toggleCamera];
+    
+    /**     -------- FaceUnity --------       **/
+    [[FUManager shareManager] onCameraChange];
+    /**     -------- FaceUnity --------       **/
 }
 
 // 七牛滤镜
@@ -871,6 +985,7 @@ FUAPIDemoBarDelegate
         PLSFilter *filter = self.filterGroup.currentFilter;
         pixelBuffer = [filter process:pixelBuffer];
     }
+    
     /**     -----  FaceUnity  ----     **/
     [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
     /**     -----  FaceUnity  ----     **/
@@ -1068,6 +1183,7 @@ FUAPIDemoBarDelegate
         [self.activityIndicatorView stopAnimating];
         self.activityIndicatorView = nil;
     }
+    
     /**     -----  FaceUnity  ----     **/
     [[FUManager shareManager] destoryItems];
     /**     -----  FaceUnity  ----     **/
@@ -1197,81 +1313,6 @@ FUAPIDemoBarDelegate
 - (void)applicationDidBecomeActive:(id)sender {
     NSLog(@"%s, %d, applicationDidBecomeActive:", __func__, __LINE__);
 }
-
-
-
-#pragma  mark ----  faceU start  -----
-// demobar 初始化
--(FUAPIDemoBar *)demoBar{
-    if (!_demoBar) {
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 120, self.view.frame.size.width, 164)];
-        
-        _demoBar.itemsDataSource = [FUManager shareManager].itemsDataSource;
-        _demoBar.selectedItem = [FUManager shareManager].selectedItem ;
-        
-        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource ;
-        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource ;
-        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName ;
-        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter ;
-        [_demoBar setFilterLevel:[FUManager shareManager].selectedFilterLevel forFilter:[FUManager shareManager].selectedFilter] ;
-        
-        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;
-        _demoBar.blurShape = [FUManager shareManager].blurShape ;
-        _demoBar.blurLevel = [FUManager shareManager].blurLevel ;
-        _demoBar.whiteLevel = [FUManager shareManager].whiteLevel ;
-        _demoBar.redLevel = [FUManager shareManager].redLevel;
-        _demoBar.eyelightingLevel = [FUManager shareManager].eyelightingLevel ;
-        _demoBar.beautyToothLevel = [FUManager shareManager].beautyToothLevel ;
-        _demoBar.faceShape = [FUManager shareManager].faceShape ;
-        
-        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel ;
-        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel ;
-        _demoBar.enlargingLevel_new = [FUManager shareManager].enlargingLevel_new ;
-        _demoBar.thinningLevel_new = [FUManager shareManager].thinningLevel_new ;
-        _demoBar.jewLevel = [FUManager shareManager].jewLevel ;
-        _demoBar.foreheadLevel = [FUManager shareManager].foreheadLevel ;
-        _demoBar.noseLevel = [FUManager shareManager].noseLevel ;
-        _demoBar.mouthLevel = [FUManager shareManager].mouthLevel ;
-        _demoBar.delegate = self;
-    }
-    return _demoBar ;
-}
-
-/**      FUAPIDemoBarDelegate       **/
-
-// 切换贴纸
-- (void)demoBarDidSelectedItem:(NSString *)itemName {
-    
-    [[FUManager shareManager] loadItem:itemName];
-}
-
-
-// 更新美颜参数
-- (void)demoBarBeautyParamChanged {
-    
-    [FUManager shareManager].skinDetectEnable = _demoBar.skinDetectEnable;
-    [FUManager shareManager].blurShape = _demoBar.blurShape;
-    [FUManager shareManager].blurLevel = _demoBar.blurLevel ;
-    [FUManager shareManager].whiteLevel = _demoBar.whiteLevel;
-    [FUManager shareManager].redLevel = _demoBar.redLevel;
-    [FUManager shareManager].eyelightingLevel = _demoBar.eyelightingLevel;
-    [FUManager shareManager].beautyToothLevel = _demoBar.beautyToothLevel;
-    [FUManager shareManager].faceShape = _demoBar.faceShape;
-    [FUManager shareManager].enlargingLevel = _demoBar.enlargingLevel;
-    [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
-    [FUManager shareManager].enlargingLevel_new = _demoBar.enlargingLevel_new;
-    [FUManager shareManager].thinningLevel_new = _demoBar.thinningLevel_new;
-    [FUManager shareManager].jewLevel = _demoBar.jewLevel;
-    [FUManager shareManager].foreheadLevel = _demoBar.foreheadLevel;
-    [FUManager shareManager].noseLevel = _demoBar.noseLevel;
-    [FUManager shareManager].mouthLevel = _demoBar.mouthLevel;
-    
-    [FUManager shareManager].selectedFilter = _demoBar.selectedFilter ;
-    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
-}
-
-
-#pragma  mark ----  faceU End  -----
 
 @end
 
