@@ -233,8 +233,6 @@
 		C3FCBFD91F305B8A007EBB10 /* icon_gif.png in Resources */ = {isa = PBXBuildFile; fileRef = C3FCBFD81F305B8A007EBB10 /* icon_gif.png */; };
 		E311DDE7218C2E3900BEA0D1 /* libnama.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E311DDC0218C2E3800BEA0D1 /* libnama.a */; };
 		E311DDE8218C2E3900BEA0D1 /* release_note.txt in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC1218C2E3800BEA0D1 /* release_note.txt */; };
-		E311DDE9218C2E3900BEA0D1 /* anim_model.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC3218C2E3800BEA0D1 /* anim_model.bundle */; };
-		E311DDEA218C2E3900BEA0D1 /* ardata_ex.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC4218C2E3800BEA0D1 /* ardata_ex.bundle */; };
 		E311DDEB218C2E3900BEA0D1 /* face_beautification.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC5218C2E3800BEA0D1 /* face_beautification.bundle */; };
 		E311DDEC218C2E3900BEA0D1 /* fxaa.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC6218C2E3800BEA0D1 /* fxaa.bundle */; };
 		E311DDED218C2E3900BEA0D1 /* v3.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC7218C2E3800BEA0D1 /* v3.bundle */; };
@@ -558,8 +556,6 @@
 		E311DDBF218C2E3800BEA0D1 /* FURenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FURenderer.h; sourceTree = "<group>"; };
 		E311DDC0218C2E3800BEA0D1 /* libnama.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnama.a; sourceTree = "<group>"; };
 		E311DDC1218C2E3800BEA0D1 /* release_note.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_note.txt; sourceTree = "<group>"; };
-		E311DDC3218C2E3800BEA0D1 /* anim_model.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = anim_model.bundle; sourceTree = "<group>"; };
-		E311DDC4218C2E3800BEA0D1 /* ardata_ex.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = ardata_ex.bundle; sourceTree = "<group>"; };
 		E311DDC5218C2E3800BEA0D1 /* face_beautification.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = face_beautification.bundle; sourceTree = "<group>"; };
 		E311DDC6218C2E3800BEA0D1 /* fxaa.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = fxaa.bundle; sourceTree = "<group>"; };
 		E311DDC7218C2E3800BEA0D1 /* v3.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = v3.bundle; sourceTree = "<group>"; };
@@ -1061,8 +1057,6 @@
 		E311DDC2218C2E3800BEA0D1 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				E311DDC3218C2E3800BEA0D1 /* anim_model.bundle */,
-				E311DDC4218C2E3800BEA0D1 /* ardata_ex.bundle */,
 				E311DDC5218C2E3800BEA0D1 /* face_beautification.bundle */,
 				E311DDC6218C2E3800BEA0D1 /* fxaa.bundle */,
 				E311DDC7218C2E3800BEA0D1 /* v3.bundle */,
@@ -1104,7 +1098,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0A9435931E6CA2E2008845A3 /* Build configuration list for PBXNativeTarget "PLShortVideoKitDemo" */;
 			buildPhases = (
-				CD27E5D82147BA140072BC67 /* unzip */,
+				E3DA4884236026CA007CF6E3 /* unzipnama */,
 				8E9D14123EEFFBB620A62CB3 /* [CP] Check Pods Manifest.lock */,
 				0A9435781E6CA2E2008845A3 /* Sources */,
 				0A9435791E6CA2E2008845A3 /* Frameworks */,
@@ -1143,6 +1137,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 				"zh-Hant",
@@ -1268,7 +1263,6 @@
 				0AD7D3151EA329A400144411 /* btn_record_a.png in Resources */,
 				0AE93A78209424430096286E /* 古代韵味音效.m4r in Resources */,
 				0AE8AC9F1F065DCD006166E2 /* Fire_Breather.m4a in Resources */,
-				E311DDEA218C2E3900BEA0D1 /* ardata_ex.bundle in Resources */,
 				9343A8C11F66763A007213BD /* Time_Machine_Reverser.png in Resources */,
 				E311DDE8218C2E3900BEA0D1 /* release_note.txt in Resources */,
 				0AF25339201D771800FCD6C8 /* PLShortVideoKit.bundle in Resources */,
@@ -1288,7 +1282,6 @@
 				0A94358A1E6CA2E2008845A3 /* Main.storyboard in Resources */,
 				0AEE566120AD765D00FBA0D1 /* zhengchang.png in Resources */,
 				0A2731EE1E75D2B0005D0CE1 /* end_disable.png in Resources */,
-				E311DDE9218C2E3900BEA0D1 /* anim_model.bundle in Resources */,
 				0A4F78FD20072B80003E8218 /* btn_play_bg_a@2x.png in Resources */,
 				C3FCBFD91F305B8A007EBB10 /* icon_gif.png in Resources */,
 				7635E3E120CE494900E36027 /* 3video_template@3x.png in Resources */,
@@ -1374,7 +1367,7 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Fabric/run\" 356922ded861e8764b53656f328bf3e7610fb59b 4e8f96a6c525321b1833e0fdb19f396702d2cb0b6e581fdf80efde45b2a3bfc1\n\n\nshortVersion=$(/usr/libexec/PlistBuddy -c \"Print :CFBundleShortVersionString\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\")\nbuildNumber=$(/usr/libexec/PlistBuddy -c \"Print :CFBundleVersion\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\")\n\ngitVersion=$(git log -1 --pretty=format:\"git-%cd-%h\" --date=short 2> /dev/null)\nbuildNumber=\"$shortVersion.$gitVersion\"\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $buildNumber\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\"\n\n";
 		};
-		CD27E5D82147BA140072BC67 /* unzip */ = {
+		E3DA4884236026CA007CF6E3 /* unzipnama */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1383,14 +1376,14 @@
 			);
 			inputPaths = (
 			);
-			name = unzip;
+			name = unzipnama;
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\ncd Faceunity/FaceUnity-SDK-iOS\nfilename=libnama.a\nzipname=libnama.zip\nmdcode=$(md5 $filename)\n\n#如果md5验证失败，且libnama.zip存在,则直接解压\nif ! [ ${mdcode##*=}x = \"013defd8ecaf81c7158c97ad4d63ba6d\"x ] && [ -f \"$zipname\" ];\nthen\nrm -f $filename\nunzip $zipname\nmdcode=$(md5 $filename)\n\nif [ ${mdcode##*=}x = \"013defd8ecaf81c7158c97ad4d63ba6d\"x ]; then\necho \"ssss\"\nrm -f $zipname\nelse\necho \"fffff\"\nrm -f $filename\nfi\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n#!/bin/sh/\ncd FaceUnity/FaceUnity-SDK-iOS\nfilename=libnama.a\nzipname=libnama.zip\n\nif [ -f \"$zipname\" ];\nthen\nrm -f $filename\nunzip $zipname\nrm -f $zipname\nfi\n";
 		};
 		F12800A47717371B5B955FDD /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
