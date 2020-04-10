@@ -84,6 +84,7 @@
 // 短视频录制
 - (void)pressRecordButtonEvent:(id)sender {
     RecordViewController *recordViewController = [[RecordViewController alloc] init];
+    recordViewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:recordViewController animated:YES completion:nil];
 }
 

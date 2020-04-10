@@ -139,7 +139,7 @@ FUAPIDemoBarDelegate
     
     // --------------------------
     // 通过手势切换滤镜
-    [self setupGestureRecognizer];
+//    [self setupGestureRecognizer];
     
     // --------------------------
     /**     -------- FaceUnity --------       **/
@@ -147,7 +147,7 @@ FUAPIDemoBarDelegate
     [self addObserver];
     
     [[FUManager shareManager] loadItems];
-    [self.view addSubview:self.demoBar ];
+    [self.view addSubview:self.demoBar];
     /**     -------- FaceUnity --------       **/
 }
 

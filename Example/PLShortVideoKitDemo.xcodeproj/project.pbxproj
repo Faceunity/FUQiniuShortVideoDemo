@@ -231,27 +231,28 @@
 		C3FCBFD61F305B70007EBB10 /* btn_selected_pic@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = C3FCBFD21F305B70007EBB10 /* btn_selected_pic@2x.png */; };
 		C3FCBFD71F305B70007EBB10 /* btn_selected_pic@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = C3FCBFD31F305B70007EBB10 /* btn_selected_pic@3x.png */; };
 		C3FCBFD91F305B8A007EBB10 /* icon_gif.png in Resources */ = {isa = PBXBuildFile; fileRef = C3FCBFD81F305B8A007EBB10 /* icon_gif.png */; };
-		E311DDE7218C2E3900BEA0D1 /* libnama.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E311DDC0218C2E3800BEA0D1 /* libnama.a */; };
-		E311DDE8218C2E3900BEA0D1 /* release_note.txt in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC1218C2E3800BEA0D1 /* release_note.txt */; };
-		E311DDEB218C2E3900BEA0D1 /* face_beautification.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC5218C2E3800BEA0D1 /* face_beautification.bundle */; };
-		E311DDEC218C2E3900BEA0D1 /* fxaa.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC6218C2E3800BEA0D1 /* fxaa.bundle */; };
-		E311DDED218C2E3900BEA0D1 /* v3.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDC7218C2E3800BEA0D1 /* v3.bundle */; };
-		E311DDF5218C2E3900BEA0D1 /* FUAPIDemoBar.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E311DDD4218C2E3800BEA0D1 /* FUAPIDemoBar.framework */; };
-		E311DDF6218C2E3900BEA0D1 /* FUManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E311DDD6218C2E3800BEA0D1 /* FUManager.m */; };
-		E311DDF7218C2E3900BEA0D1 /* FUMusicPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = E311DDD8218C2E3800BEA0D1 /* FUMusicPlayer.m */; };
-		E311DDF8218C2E3900BEA0D1 /* fengya_ztt_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDDA218C2E3800BEA0D1 /* fengya_ztt_fu.bundle */; };
-		E311DDF9218C2E3900BEA0D1 /* hudie_lm_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDDB218C2E3800BEA0D1 /* hudie_lm_fu.bundle */; };
-		E311DDFA218C2E3900BEA0D1 /* juanhuzi_lm_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDDC218C2E3800BEA0D1 /* juanhuzi_lm_fu.bundle */; };
-		E311DDFB218C2E3900BEA0D1 /* mask_hat.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDDD218C2E3800BEA0D1 /* mask_hat.bundle */; };
-		E311DDFC218C2E3900BEA0D1 /* touhua_ztt_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDDE218C2E3800BEA0D1 /* touhua_ztt_fu.bundle */; };
-		E311DDFD218C2E3900BEA0D1 /* yazui.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDDF218C2E3800BEA0D1 /* yazui.bundle */; };
-		E311DDFE218C2E3900BEA0D1 /* yuguan.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDE0218C2E3800BEA0D1 /* yuguan.bundle */; };
-		E311DDFF218C2E3900BEA0D1 /* douyin.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E311DDE2218C2E3800BEA0D1 /* douyin.mp3 */; };
-		E311DE00218C2E3900BEA0D1 /* douyin_01.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDE3218C2E3900BEA0D1 /* douyin_01.bundle */; };
-		E311DE01218C2E3900BEA0D1 /* douyin_01.png in Resources */ = {isa = PBXBuildFile; fileRef = E311DDE4218C2E3900BEA0D1 /* douyin_01.png */; };
-		E311DE02218C2E3900BEA0D1 /* douyin_02.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E311DDE5218C2E3900BEA0D1 /* douyin_02.bundle */; };
-		E311DE03218C2E3900BEA0D1 /* douyin_02.png in Resources */ = {isa = PBXBuildFile; fileRef = E311DDE6218C2E3900BEA0D1 /* douyin_02.png */; };
-		E311DE05218C306000BEA0D1 /* FUAPIDemoBar.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E311DDD4218C2E3800BEA0D1 /* FUAPIDemoBar.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		E39B80CE242B2EE600E837E0 /* FUMusicPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = E39B80AF242B2EE600E837E0 /* FUMusicPlayer.m */; };
+		E39B80CF242B2EE600E837E0 /* FUAPIDemoBar.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E39B80B1242B2EE600E837E0 /* FUAPIDemoBar.framework */; };
+		E39B80D0242B2EE600E837E0 /* touhua_ztt_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B3242B2EE600E837E0 /* touhua_ztt_fu.bundle */; };
+		E39B80D1242B2EE600E837E0 /* yazui.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B4242B2EE600E837E0 /* yazui.bundle */; };
+		E39B80D2242B2EE600E837E0 /* yuguan.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B5242B2EE600E837E0 /* yuguan.bundle */; };
+		E39B80D3242B2EE600E837E0 /* hudie_lm_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B6242B2EE600E837E0 /* hudie_lm_fu.bundle */; };
+		E39B80D4242B2EE600E837E0 /* mask_hat.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B7242B2EE600E837E0 /* mask_hat.bundle */; };
+		E39B80D5242B2EE600E837E0 /* juanhuzi_lm_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B8242B2EE600E837E0 /* juanhuzi_lm_fu.bundle */; };
+		E39B80D6242B2EE600E837E0 /* fengya_ztt_fu.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80B9242B2EE600E837E0 /* fengya_ztt_fu.bundle */; };
+		E39B80D7242B2EE600E837E0 /* douyin_02.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80BB242B2EE600E837E0 /* douyin_02.bundle */; };
+		E39B80D8242B2EE600E837E0 /* douyin.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E39B80BC242B2EE600E837E0 /* douyin.mp3 */; };
+		E39B80D9242B2EE600E837E0 /* douyin_01.png in Resources */ = {isa = PBXBuildFile; fileRef = E39B80BD242B2EE600E837E0 /* douyin_01.png */; };
+		E39B80DA242B2EE600E837E0 /* douyin_01.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80BE242B2EE600E837E0 /* douyin_01.bundle */; };
+		E39B80DB242B2EE600E837E0 /* douyin_02.png in Resources */ = {isa = PBXBuildFile; fileRef = E39B80BF242B2EE600E837E0 /* douyin_02.png */; };
+		E39B80DC242B2EE600E837E0 /* FUManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E39B80C1242B2EE600E837E0 /* FUManager.m */; };
+		E39B80DD242B2EE600E837E0 /* release_note.txt in Resources */ = {isa = PBXBuildFile; fileRef = E39B80C3242B2EE600E837E0 /* release_note.txt */; };
+		E39B80DE242B2EE600E837E0 /* libnama.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E39B80C4242B2EE600E837E0 /* libnama.a */; };
+		E39B80DF242B2EE600E837E0 /* v3.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80C6242B2EE600E837E0 /* v3.bundle */; };
+		E39B80E0242B2EE600E837E0 /* ai_face_processor.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80C8242B2EE600E837E0 /* ai_face_processor.bundle */; };
+		E39B80E1242B2EE600E837E0 /* face_beautification.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E39B80C9242B2EE600E837E0 /* face_beautification.bundle */; };
+		E39B80E2242B2EE600E837E0 /* libfuai.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E39B80CD242B2EE600E837E0 /* libfuai.a */; };
+		E39B80E3242B2EF200E837E0 /* FUAPIDemoBar.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = E39B80B1242B2EE600E837E0 /* FUAPIDemoBar.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F360B89E036039A66815D9FE /* libPods-PLShortVideoKitDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 57AEAFA0012D959C08AB23AE /* libPods-PLShortVideoKitDemo.a */; };
 /* End PBXBuildFile section */
 
@@ -262,7 +263,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				E311DE05218C306000BEA0D1 /* FUAPIDemoBar.framework in CopyFiles */,
+				E39B80E3242B2EF200E837E0 /* FUAPIDemoBar.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -551,31 +552,32 @@
 		C3FCBFD21F305B70007EBB10 /* btn_selected_pic@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "btn_selected_pic@2x.png"; path = "images/btn_selected_pic@2x.png"; sourceTree = "<group>"; };
 		C3FCBFD31F305B70007EBB10 /* btn_selected_pic@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "btn_selected_pic@3x.png"; path = "images/btn_selected_pic@3x.png"; sourceTree = "<group>"; };
 		C3FCBFD81F305B8A007EBB10 /* icon_gif.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon_gif.png; path = images/icon_gif.png; sourceTree = "<group>"; };
-		E311DDBB218C2E3800BEA0D1 /* authpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = authpack.h; sourceTree = "<group>"; };
-		E311DDBE218C2E3800BEA0D1 /* funama.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funama.h; sourceTree = "<group>"; };
-		E311DDBF218C2E3800BEA0D1 /* FURenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FURenderer.h; sourceTree = "<group>"; };
-		E311DDC0218C2E3800BEA0D1 /* libnama.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnama.a; sourceTree = "<group>"; };
-		E311DDC1218C2E3800BEA0D1 /* release_note.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_note.txt; sourceTree = "<group>"; };
-		E311DDC5218C2E3800BEA0D1 /* face_beautification.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = face_beautification.bundle; sourceTree = "<group>"; };
-		E311DDC6218C2E3800BEA0D1 /* fxaa.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = fxaa.bundle; sourceTree = "<group>"; };
-		E311DDC7218C2E3800BEA0D1 /* v3.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = v3.bundle; sourceTree = "<group>"; };
-		E311DDD4218C2E3800BEA0D1 /* FUAPIDemoBar.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FUAPIDemoBar.framework; sourceTree = "<group>"; };
-		E311DDD5218C2E3800BEA0D1 /* FUManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FUManager.h; sourceTree = "<group>"; };
-		E311DDD6218C2E3800BEA0D1 /* FUManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FUManager.m; sourceTree = "<group>"; };
-		E311DDD7218C2E3800BEA0D1 /* FUMusicPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FUMusicPlayer.h; sourceTree = "<group>"; };
-		E311DDD8218C2E3800BEA0D1 /* FUMusicPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FUMusicPlayer.m; sourceTree = "<group>"; };
-		E311DDDA218C2E3800BEA0D1 /* fengya_ztt_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = fengya_ztt_fu.bundle; sourceTree = "<group>"; };
-		E311DDDB218C2E3800BEA0D1 /* hudie_lm_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = hudie_lm_fu.bundle; sourceTree = "<group>"; };
-		E311DDDC218C2E3800BEA0D1 /* juanhuzi_lm_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = juanhuzi_lm_fu.bundle; sourceTree = "<group>"; };
-		E311DDDD218C2E3800BEA0D1 /* mask_hat.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = mask_hat.bundle; sourceTree = "<group>"; };
-		E311DDDE218C2E3800BEA0D1 /* touhua_ztt_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = touhua_ztt_fu.bundle; sourceTree = "<group>"; };
-		E311DDDF218C2E3800BEA0D1 /* yazui.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = yazui.bundle; sourceTree = "<group>"; };
-		E311DDE0218C2E3800BEA0D1 /* yuguan.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = yuguan.bundle; sourceTree = "<group>"; };
-		E311DDE2218C2E3800BEA0D1 /* douyin.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = douyin.mp3; sourceTree = "<group>"; };
-		E311DDE3218C2E3900BEA0D1 /* douyin_01.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = douyin_01.bundle; sourceTree = "<group>"; };
-		E311DDE4218C2E3900BEA0D1 /* douyin_01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = douyin_01.png; sourceTree = "<group>"; };
-		E311DDE5218C2E3900BEA0D1 /* douyin_02.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = douyin_02.bundle; sourceTree = "<group>"; };
-		E311DDE6218C2E3900BEA0D1 /* douyin_02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = douyin_02.png; sourceTree = "<group>"; };
+		E39B80AE242B2EE600E837E0 /* authpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = authpack.h; sourceTree = "<group>"; };
+		E39B80AF242B2EE600E837E0 /* FUMusicPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FUMusicPlayer.m; sourceTree = "<group>"; };
+		E39B80B0242B2EE600E837E0 /* FUManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FUManager.h; sourceTree = "<group>"; };
+		E39B80B1242B2EE600E837E0 /* FUAPIDemoBar.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FUAPIDemoBar.framework; sourceTree = "<group>"; };
+		E39B80B3242B2EE600E837E0 /* touhua_ztt_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = touhua_ztt_fu.bundle; sourceTree = "<group>"; };
+		E39B80B4242B2EE600E837E0 /* yazui.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = yazui.bundle; sourceTree = "<group>"; };
+		E39B80B5242B2EE600E837E0 /* yuguan.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = yuguan.bundle; sourceTree = "<group>"; };
+		E39B80B6242B2EE600E837E0 /* hudie_lm_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = hudie_lm_fu.bundle; sourceTree = "<group>"; };
+		E39B80B7242B2EE600E837E0 /* mask_hat.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = mask_hat.bundle; sourceTree = "<group>"; };
+		E39B80B8242B2EE600E837E0 /* juanhuzi_lm_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = juanhuzi_lm_fu.bundle; sourceTree = "<group>"; };
+		E39B80B9242B2EE600E837E0 /* fengya_ztt_fu.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = fengya_ztt_fu.bundle; sourceTree = "<group>"; };
+		E39B80BB242B2EE600E837E0 /* douyin_02.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = douyin_02.bundle; sourceTree = "<group>"; };
+		E39B80BC242B2EE600E837E0 /* douyin.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = douyin.mp3; sourceTree = "<group>"; };
+		E39B80BD242B2EE600E837E0 /* douyin_01.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = douyin_01.png; sourceTree = "<group>"; };
+		E39B80BE242B2EE600E837E0 /* douyin_01.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = douyin_01.bundle; sourceTree = "<group>"; };
+		E39B80BF242B2EE600E837E0 /* douyin_02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = douyin_02.png; sourceTree = "<group>"; };
+		E39B80C0242B2EE600E837E0 /* FUMusicPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FUMusicPlayer.h; sourceTree = "<group>"; };
+		E39B80C1242B2EE600E837E0 /* FUManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FUManager.m; sourceTree = "<group>"; };
+		E39B80C3242B2EE600E837E0 /* release_note.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = release_note.txt; sourceTree = "<group>"; };
+		E39B80C4242B2EE600E837E0 /* libnama.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libnama.a; sourceTree = "<group>"; };
+		E39B80C6242B2EE600E837E0 /* v3.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = v3.bundle; sourceTree = "<group>"; };
+		E39B80C8242B2EE600E837E0 /* ai_face_processor.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = ai_face_processor.bundle; sourceTree = "<group>"; };
+		E39B80C9242B2EE600E837E0 /* face_beautification.bundle */ = {isa = PBXFileReference; lastKnownFileType = file; path = face_beautification.bundle; sourceTree = "<group>"; };
+		E39B80CB242B2EE600E837E0 /* funama.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = funama.h; sourceTree = "<group>"; };
+		E39B80CC242B2EE600E837E0 /* FURenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FURenderer.h; sourceTree = "<group>"; };
+		E39B80CD242B2EE600E837E0 /* libfuai.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libfuai.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -587,16 +589,17 @@
 				C3A78FB71F95F67500C3F2D6 /* libc++.tbd in Frameworks */,
 				C3A78FB51F95F66800C3F2D6 /* JavaScriptCore.framework in Frameworks */,
 				C3A78FB31F95F66200C3F2D6 /* GLKit.framework in Frameworks */,
-				E311DDE7218C2E3900BEA0D1 /* libnama.a in Frameworks */,
 				C3A78FB11F95F65B00C3F2D6 /* UIKit.framework in Frameworks */,
-				E311DDF5218C2E3900BEA0D1 /* FUAPIDemoBar.framework in Frameworks */,
 				C3A78FAF1F95F65500C3F2D6 /* OpenGLES.framework in Frameworks */,
 				0A0DCA261FB070E400F1446F /* libz.1.1.3.tbd in Frameworks */,
+				E39B80CF242B2EE600E837E0 /* FUAPIDemoBar.framework in Frameworks */,
+				E39B80DE242B2EE600E837E0 /* libnama.a in Frameworks */,
 				C3A78FAD1F95F64E00C3F2D6 /* QuartzCore.framework in Frameworks */,
 				C3A78FAB1F95F64400C3F2D6 /* CoreMotion.framework in Frameworks */,
 				0A0DCA281FB070F600F1446F /* libiconv.2.4.0.tbd in Frameworks */,
 				C3A78FA91F95F63A00C3F2D6 /* CoreVideo.framework in Frameworks */,
 				C3A78FA71F95F63300C3F2D6 /* CoreMedia.framework in Frameworks */,
+				E39B80E2242B2EE600E837E0 /* libfuai.a in Frameworks */,
 				C3A78FA51F95F62D00C3F2D6 /* CoreImage.framework in Frameworks */,
 				C3A78FA31F95F62600C3F2D6 /* CoreGraphics.framework in Frameworks */,
 				0A0DCA241FB070DC00F1446F /* libbz2.1.0.tbd in Frameworks */,
@@ -612,7 +615,7 @@
 		0A9435731E6CA2E2008845A3 = {
 			isa = PBXGroup;
 			children = (
-				E311DDBA218C2E3800BEA0D1 /* FaceUnity */,
+				E39B80AD242B2EE600E837E0 /* FaceUnity */,
 				0A94357E1E6CA2E2008845A3 /* PLShortVideoKitDemo */,
 				0A94357D1E6CA2E2008845A3 /* Products */,
 				32B90CBBA587775FFC5C4D5B /* Pods */,
@@ -1019,76 +1022,85 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		E311DDBA218C2E3800BEA0D1 /* FaceUnity */ = {
+		E39B80AD242B2EE600E837E0 /* FaceUnity */ = {
 			isa = PBXGroup;
 			children = (
-				E311DDBB218C2E3800BEA0D1 /* authpack.h */,
-				E311DDBC218C2E3800BEA0D1 /* FaceUnity-SDK-iOS */,
-				E311DDD4218C2E3800BEA0D1 /* FUAPIDemoBar.framework */,
-				E311DDD5218C2E3800BEA0D1 /* FUManager.h */,
-				E311DDD6218C2E3800BEA0D1 /* FUManager.m */,
-				E311DDD7218C2E3800BEA0D1 /* FUMusicPlayer.h */,
-				E311DDD8218C2E3800BEA0D1 /* FUMusicPlayer.m */,
-				E311DDD9218C2E3800BEA0D1 /* items */,
+				E39B80AE242B2EE600E837E0 /* authpack.h */,
+				E39B80AF242B2EE600E837E0 /* FUMusicPlayer.m */,
+				E39B80B0242B2EE600E837E0 /* FUManager.h */,
+				E39B80B1242B2EE600E837E0 /* FUAPIDemoBar.framework */,
+				E39B80B2242B2EE600E837E0 /* items */,
+				E39B80C0242B2EE600E837E0 /* FUMusicPlayer.h */,
+				E39B80C1242B2EE600E837E0 /* FUManager.m */,
+				E39B80C2242B2EE600E837E0 /* FaceUnity-SDK-iOS */,
 			);
 			path = FaceUnity;
 			sourceTree = "<group>";
 		};
-		E311DDBC218C2E3800BEA0D1 /* FaceUnity-SDK-iOS */ = {
+		E39B80B2242B2EE600E837E0 /* items */ = {
 			isa = PBXGroup;
 			children = (
-				E311DDBD218C2E3800BEA0D1 /* Headers */,
-				E311DDC0218C2E3800BEA0D1 /* libnama.a */,
-				E311DDC1218C2E3800BEA0D1 /* release_note.txt */,
-				E311DDC2218C2E3800BEA0D1 /* Resources */,
-			);
-			path = "FaceUnity-SDK-iOS";
-			sourceTree = "<group>";
-		};
-		E311DDBD218C2E3800BEA0D1 /* Headers */ = {
-			isa = PBXGroup;
-			children = (
-				E311DDBE218C2E3800BEA0D1 /* funama.h */,
-				E311DDBF218C2E3800BEA0D1 /* FURenderer.h */,
-			);
-			path = Headers;
-			sourceTree = "<group>";
-		};
-		E311DDC2218C2E3800BEA0D1 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				E311DDC5218C2E3800BEA0D1 /* face_beautification.bundle */,
-				E311DDC6218C2E3800BEA0D1 /* fxaa.bundle */,
-				E311DDC7218C2E3800BEA0D1 /* v3.bundle */,
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		E311DDD9218C2E3800BEA0D1 /* items */ = {
-			isa = PBXGroup;
-			children = (
-				E311DDDA218C2E3800BEA0D1 /* fengya_ztt_fu.bundle */,
-				E311DDDB218C2E3800BEA0D1 /* hudie_lm_fu.bundle */,
-				E311DDDC218C2E3800BEA0D1 /* juanhuzi_lm_fu.bundle */,
-				E311DDDD218C2E3800BEA0D1 /* mask_hat.bundle */,
-				E311DDDE218C2E3800BEA0D1 /* touhua_ztt_fu.bundle */,
-				E311DDDF218C2E3800BEA0D1 /* yazui.bundle */,
-				E311DDE0218C2E3800BEA0D1 /* yuguan.bundle */,
-				E311DDE1218C2E3800BEA0D1 /* 音乐滤镜 */,
+				E39B80B3242B2EE600E837E0 /* touhua_ztt_fu.bundle */,
+				E39B80B4242B2EE600E837E0 /* yazui.bundle */,
+				E39B80B5242B2EE600E837E0 /* yuguan.bundle */,
+				E39B80B6242B2EE600E837E0 /* hudie_lm_fu.bundle */,
+				E39B80B7242B2EE600E837E0 /* mask_hat.bundle */,
+				E39B80B8242B2EE600E837E0 /* juanhuzi_lm_fu.bundle */,
+				E39B80B9242B2EE600E837E0 /* fengya_ztt_fu.bundle */,
+				E39B80BA242B2EE600E837E0 /* 音乐滤镜 */,
 			);
 			path = items;
 			sourceTree = "<group>";
 		};
-		E311DDE1218C2E3800BEA0D1 /* 音乐滤镜 */ = {
+		E39B80BA242B2EE600E837E0 /* 音乐滤镜 */ = {
 			isa = PBXGroup;
 			children = (
-				E311DDE2218C2E3800BEA0D1 /* douyin.mp3 */,
-				E311DDE3218C2E3900BEA0D1 /* douyin_01.bundle */,
-				E311DDE4218C2E3900BEA0D1 /* douyin_01.png */,
-				E311DDE5218C2E3900BEA0D1 /* douyin_02.bundle */,
-				E311DDE6218C2E3900BEA0D1 /* douyin_02.png */,
+				E39B80BB242B2EE600E837E0 /* douyin_02.bundle */,
+				E39B80BC242B2EE600E837E0 /* douyin.mp3 */,
+				E39B80BD242B2EE600E837E0 /* douyin_01.png */,
+				E39B80BE242B2EE600E837E0 /* douyin_01.bundle */,
+				E39B80BF242B2EE600E837E0 /* douyin_02.png */,
 			);
 			path = "音乐滤镜";
+			sourceTree = "<group>";
+		};
+		E39B80C2242B2EE600E837E0 /* FaceUnity-SDK-iOS */ = {
+			isa = PBXGroup;
+			children = (
+				E39B80C3242B2EE600E837E0 /* release_note.txt */,
+				E39B80C4242B2EE600E837E0 /* libnama.a */,
+				E39B80C5242B2EE600E837E0 /* Resources */,
+				E39B80CA242B2EE600E837E0 /* Headers */,
+				E39B80CD242B2EE600E837E0 /* libfuai.a */,
+			);
+			path = "FaceUnity-SDK-iOS";
+			sourceTree = "<group>";
+		};
+		E39B80C5242B2EE600E837E0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E39B80C6242B2EE600E837E0 /* v3.bundle */,
+				E39B80C7242B2EE600E837E0 /* AI_model */,
+				E39B80C9242B2EE600E837E0 /* face_beautification.bundle */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		E39B80C7242B2EE600E837E0 /* AI_model */ = {
+			isa = PBXGroup;
+			children = (
+				E39B80C8242B2EE600E837E0 /* ai_face_processor.bundle */,
+			);
+			path = AI_model;
+			sourceTree = "<group>";
+		};
+		E39B80CA242B2EE600E837E0 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				E39B80CB242B2EE600E837E0 /* funama.h */,
+				E39B80CC242B2EE600E837E0 /* FURenderer.h */,
+			);
+			path = Headers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1157,12 +1169,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E39B80DA242B2EE600E837E0 /* douyin_01.bundle in Resources */,
 				C35043971FBED6B900F9633D /* music_no_selected.png in Resources */,
 				C35043981FBED6B900F9633D /* music_selected.png in Resources */,
 				C35043641FB3152600F9633D /* draft_video.png in Resources */,
 				0A398F921ED6628500996229 /* cut_bar_left@2x.png in Resources */,
 				0A9B8A9120B6868200E7C8D7 /* video_edit_trim_slider@2x.png in Resources */,
-				E311DE02218C2E3900BEA0D1 /* douyin_02.bundle in Resources */,
 				0AEE566020AD765D00FBA0D1 /* man.png in Resources */,
 				0A06924E1E8A3B590035CB7B /* btn_camera_cancel_b@3x.png in Resources */,
 				0A0692591E8A3C720035CB7B /* btn_del_a@2x.png in Resources */,
@@ -1172,12 +1184,11 @@
 				0A94358F1E6CA2E2008845A3 /* LaunchScreen.storyboard in Resources */,
 				0A0692491E8A3B590035CB7B /* btn_bar_next_b@2x.png in Resources */,
 				0A94DFD31E6DF5D2007BDD0D /* toggle_camera.png in Resources */,
-				E311DDFF218C2E3900BEA0D1 /* douyin.mp3 in Resources */,
-				E311DDFE218C2E3900BEA0D1 /* yuguan.bundle in Resources */,
+				E39B80D2242B2EE600E837E0 /* yuguan.bundle in Resources */,
+				E39B80DD242B2EE600E837E0 /* release_note.txt in Resources */,
 				0A9B8A8D20B6868200E7C8D7 /* paster_time_edit_slider_bg@2x.png in Resources */,
 				0AF33C031F7180D200CCFB42 /* 爱马仕轨迹.mp4 in Resources */,
 				0AF33C0D1F7180D200CCFB42 /* mv3.png in Resources */,
-				E311DDFB218C2E3900BEA0D1 /* mask_hat.bundle in Resources */,
 				0A9CB4EC1EF042FB00EABA76 /* btn_close_sound@2x.png in Resources */,
 				0AF33C091F7180D200CCFB42 /* co轨迹.mp4 in Resources */,
 				0AF33C021F7180D200CCFB42 /* 爱马仕.mp4 in Resources */,
@@ -1186,7 +1197,6 @@
 				0A398F9F1ED6698F00996229 /* cut_bar_progress@2x.png in Resources */,
 				0A9B8A9520B6868200E7C8D7 /* sticker_delete@2x.png in Resources */,
 				C3FCBFD41F305B70007EBB10 /* btn_no_selected_pic@2x.png in Resources */,
-				E311DDF9218C2E3900BEA0D1 /* hudie_lm_fu.bundle in Resources */,
 				7635E40B20CE8F5900E36027 /* select_shoot@2x.png in Resources */,
 				0AE93A7A209424430096286E /* 清新鸟鸣音效.m4r in Resources */,
 				0A398F911ED6628500996229 /* cut_bar_left.png in Resources */,
@@ -1197,9 +1207,10 @@
 				9343A8C01F66763A007213BD /* Time_Machine_No_Reverser.png in Resources */,
 				0A1E2CE41E8CAF8C002C9296 /* btn_record_shine_big@2x.png in Resources */,
 				0A06924A1E8A3B590035CB7B /* btn_bar_next_b@3x.png in Resources */,
+				E39B80D8242B2EE600E837E0 /* douyin.mp3 in Resources */,
+				E39B80E0242B2EE600E837E0 /* ai_face_processor.bundle in Resources */,
 				0A0692441E8A3B590035CB7B /* btn_bar_back_a@3x.png in Resources */,
 				0A09F0AF201ABE4F00B585D9 /* btn_revocation@3x.png in Resources */,
-				E311DE00218C2E3900BEA0D1 /* douyin_01.bundle in Resources */,
 				0A398F9E1ED6698F00996229 /* cut_bar_progress.png in Resources */,
 				7697484820285747001AC847 /* transition_black.mp4 in Resources */,
 				0A94DFD11E6DF5D2007BDD0D /* flash_open.png in Resources */,
@@ -1227,17 +1238,17 @@
 				0A5DF89220BE834B00F79CE0 /* pls_multi_musics.json in Resources */,
 				0A94DFCE1E6DF5D2007BDD0D /* end_normal.png in Resources */,
 				7615EE5421835E3800F7D55D /* watermark.gif in Resources */,
+				E39B80D4242B2EE600E837E0 /* mask_hat.bundle in Resources */,
 				0A06924F1E8A3B590035CB7B /* btn_camera_done_a@2x.png in Resources */,
 				0A24C5E21EE912E500B2314E /* Road_to_Moscow.mp3 in Resources */,
 				0A0692431E8A3B590035CB7B /* btn_bar_back_a@2x.png in Resources */,
-				E311DDEC218C2E3900BEA0D1 /* fxaa.bundle in Resources */,
 				0A928BE61EE75ECB007D2250 /* icon_volume.png in Resources */,
+				E39B80D3242B2EE600E837E0 /* hudie_lm_fu.bundle in Resources */,
 				0A398F981ED662A000996229 /* cut_bar_right.png in Resources */,
 				0A57EBB41E7596CC00FC5BF8 /* record_close_normal.png in Resources */,
 				0A1E2CE31E8CAF8C002C9296 /* btn_makeface_flipcamera@3x.png in Resources */,
 				0A94DFCF1E6DF5D2007BDD0D /* delete.png in Resources */,
 				0A94DFD01E6DF5D2007BDD0D /* flash_close.png in Resources */,
-				E311DDFA218C2E3900BEA0D1 /* juanhuzi_lm_fu.bundle in Resources */,
 				7635E3E520CE494900E36027 /* 4video_template@2x.png in Resources */,
 				0AF33C0C1F7180D200CCFB42 /* mv2.png in Resources */,
 				0AEE565E20AD765D00FBA0D1 /* jiman.png in Resources */,
@@ -1251,33 +1262,32 @@
 				0A0692541E8A3B590035CB7B /* btn_camera_done_c@3x.png in Resources */,
 				0ADCCC61209BFAA300BC114A /* gif1.gif in Resources */,
 				0A2604411FA8498B00609411 /* icon_dub.png in Resources */,
-				E311DDFD218C2E3900BEA0D1 /* yazui.bundle in Resources */,
 				7635E40620CE8F5900E36027 /* select_shoot@3x.png in Resources */,
 				0A1E2CE51E8CAF8C002C9296 /* btn_record_shine_big@3x.png in Resources */,
 				0A9CB4EF1EF042FB00EABA76 /* btn_sound@3x.png in Resources */,
 				0AE538951FB2294700DDF5B9 /* rotate.png in Resources */,
 				0AF33C061F7180D200CCFB42 /* 芬迪.mp4 in Resources */,
 				0A1DDC8220BBE0CB00DF53B6 /* rotate_image.png in Resources */,
+				E39B80D7242B2EE600E837E0 /* douyin_02.bundle in Resources */,
 				0A4F78FC20072B80003E8218 /* btn_play_bg_a@3x.png in Resources */,
 				0A3CCE7A1FA91CC8003D766A /* dubber_start.png in Resources */,
 				0AD7D3151EA329A400144411 /* btn_record_a.png in Resources */,
 				0AE93A78209424430096286E /* 古代韵味音效.m4r in Resources */,
 				0AE8AC9F1F065DCD006166E2 /* Fire_Breather.m4a in Resources */,
+				E39B80D5242B2EE600E837E0 /* juanhuzi_lm_fu.bundle in Resources */,
 				9343A8C11F66763A007213BD /* Time_Machine_Reverser.png in Resources */,
-				E311DDE8218C2E3900BEA0D1 /* release_note.txt in Resources */,
 				0AF25339201D771800FCD6C8 /* PLShortVideoKit.bundle in Resources */,
 				0ADCCC60209BFAA300BC114A /* gif2.gif in Resources */,
 				7635E3E220CE494900E36027 /* 2video_template@2x.png in Resources */,
-				E311DDF8218C2E3900BEA0D1 /* fengya_ztt_fu.bundle in Resources */,
-				E311DDEB218C2E3900BEA0D1 /* face_beautification.bundle in Resources */,
 				0A0692501E8A3B590035CB7B /* btn_camera_done_a@3x.png in Resources */,
 				0A94358C1E6CA2E2008845A3 /* Assets.xcassets in Resources */,
 				0AF33C0B1F7180D200CCFB42 /* mv1.png in Resources */,
 				0A0692471E8A3B590035CB7B /* btn_bar_next_a@2x.png in Resources */,
+				E39B80D6242B2EE600E837E0 /* fengya_ztt_fu.bundle in Resources */,
+				E39B80D1242B2EE600E837E0 /* yazui.bundle in Resources */,
 				0AF33C041F7180D200CCFB42 /* 川久保玲.mp4 in Resources */,
 				0AF33C0A1F7180D200CCFB42 /* mv.png in Resources */,
 				0AD7279D20BF249C00662588 /* 胜利小旋律音效.m4r in Resources */,
-				E311DDED218C2E3900BEA0D1 /* v3.bundle in Resources */,
 				0A0692471E8A3B590035CB7B /* btn_bar_next_a@2x.png in Resources */,
 				0A94358A1E6CA2E2008845A3 /* Main.storyboard in Resources */,
 				0AEE566120AD765D00FBA0D1 /* zhengchang.png in Resources */,
@@ -1288,12 +1298,14 @@
 				0A9B8A9420B6868200E7C8D7 /* sticker.bundle in Resources */,
 				7697484720285747001AC847 /* green_quot.png in Resources */,
 				0A06924D1E8A3B590035CB7B /* btn_camera_cancel_b@2x.png in Resources */,
+				E39B80DF242B2EE600E837E0 /* v3.bundle in Resources */,
 				0A06924B1E8A3B590035CB7B /* btn_camera_cancel_a@2x.png in Resources */,
 				0A398FA01ED6698F00996229 /* cut_bar_progress@3x.png in Resources */,
 				0AEE565F20AD765D00FBA0D1 /* jikuai.png in Resources */,
 				0AD98DC6203188CE006551EC /* h265_video in Resources */,
 				0A2732311E75F99D005D0CE1 /* btn_play_bg_a.png in Resources */,
 				0AF33C0F1F7180D200CCFB42 /* plsMVs.json in Resources */,
+				E39B80DB242B2EE600E837E0 /* douyin_02.png in Resources */,
 				0A398F761ED62A1500996229 /* btn_banner_a@3x.png in Resources */,
 				0A24C5ED1EE951B900B2314E /* movie.png in Resources */,
 				0A1DDC8120BBE0CB00DF53B6 /* rotate_background.png in Resources */,
@@ -1302,12 +1314,11 @@
 				7635E40820CE8F5900E36027 /* select_meterial@2x.png in Resources */,
 				0AE8ACA01F065DCD006166E2 /* Greenery.m4a in Resources */,
 				0A9CB4ED1EF042FB00EABA76 /* btn_close_sound@3x.png in Resources */,
-				E311DE03218C2E3900BEA0D1 /* douyin_02.png in Resources */,
+				E39B80D9242B2EE600E837E0 /* douyin_01.png in Resources */,
 				C3FCBFD71F305B70007EBB10 /* btn_selected_pic@3x.png in Resources */,
 				7635E3E620CE494900E36027 /* 4video_template@3x.png in Resources */,
 				0AECA4F61E884D0900AF2931 /* video_play.png in Resources */,
 				0AF33C071F7180D200CCFB42 /* 芬迪轨迹.mp4 in Resources */,
-				E311DDFC218C2E3900BEA0D1 /* touhua_ztt_fu.bundle in Resources */,
 				0A0692451E8A3B590035CB7B /* btn_bar_back_b@2x.png in Resources */,
 				C3FCBFD51F305B70007EBB10 /* btn_no_selected_pic@3x.png in Resources */,
 				0A3CCE791FA91CC8003D766A /* dubber_stop.png in Resources */,
@@ -1318,8 +1329,8 @@
 				C3FCBFD61F305B70007EBB10 /* btn_selected_pic@2x.png in Resources */,
 				7635E40720CE8F5900E36027 /* select_pintu@3x.png in Resources */,
 				0A9B8A8E20B6868200E7C8D7 /* video_edit_trim_slider@3x.png in Resources */,
-				E311DE01218C2E3900BEA0D1 /* douyin_01.png in Resources */,
 				7635E3E320CE494900E36027 /* 2video_template@3x.png in Resources */,
+				E39B80D0242B2EE600E837E0 /* touhua_ztt_fu.bundle in Resources */,
 				0A1E2CE21E8CAF8C002C9296 /* btn_makeface_flipcamera@2x.png in Resources */,
 				0A24C5E11EE912E500B2314E /* plsmusics.json in Resources */,
 				0A0692531E8A3B590035CB7B /* btn_camera_done_c@2x.png in Resources */,
@@ -1330,6 +1341,7 @@
 				0A398F9A1ED662A000996229 /* cut_bar_right@3x.png in Resources */,
 				0A0692521E8A3B590035CB7B /* btn_camera_done_b@3x.png in Resources */,
 				7635E3E420CE494900E36027 /* 3video_template@2x.png in Resources */,
+				E39B80E1242B2EE600E837E0 /* face_beautification.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1383,7 +1395,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n#!/bin/sh/\ncd FaceUnity/FaceUnity-SDK-iOS\nfilename=libnama.a\nzipname=libnama.zip\n\nif [ -f \"$zipname\" ];\nthen\nrm -f $filename\nunzip $zipname\nrm -f $zipname\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n#!/bin/sh/\ncd FaceUnity/FaceUnity-SDK-iOS\nfilename=libnama.a\nzipname=libnama.zip\n\nfilename2=libfuai.a\nzipname2=libfuai.zip\nmdcode=$(md5 $filename)\n\nif [ -f \"$zipname\" ];\nthen\nrm -f $filename\nunzip $zipname\nrm -f $zipname\n\nrm -f $filename2\nunzip $zipname2\nrm -f $zipname2\nfi\n";
 		};
 		F12800A47717371B5B955FDD /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1419,7 +1431,6 @@
 				760F7706202AF92A0052F513 /* BaseViewController.m in Sources */,
 				0A398F6C1ED6259000996229 /* PhotoAlbumViewController.m in Sources */,
 				0AE8AC951F063E3E006166E2 /* PLSClipAudioView.m in Sources */,
-				E311DDF7218C2E3900BEA0D1 /* FUMusicPlayer.m in Sources */,
 				C39EA3D71F4E753D0007D1C3 /* PLSRateButtonView.m in Sources */,
 				7697482E202835D2001AC847 /* TransitionTextEditViewController.m in Sources */,
 				7697482F202835D2001AC847 /* TransitionModelMaker.m in Sources */,
@@ -1430,8 +1441,10 @@
 				7636991A20871AC800626680 /* MixRecordViewController.m in Sources */,
 				0A9435841E6CA2E2008845A3 /* AppDelegate.m in Sources */,
 				0A9435811E6CA2E2008845A3 /* main.m in Sources */,
+				E39B80CE242B2EE600E837E0 /* FUMusicPlayer.m in Sources */,
 				0A9B8A7D20B6822800E7C8D7 /* PLSAssetImageGenerator.m in Sources */,
 				0A9B8A7B20B6822800E7C8D7 /* PLSTimelineMediaInfo.m in Sources */,
+				E39B80DC242B2EE600E837E0 /* FUManager.m in Sources */,
 				C3FCBFCB1F305B21007EBB10 /* GifFormatViewController.m in Sources */,
 				7623E9E020B5414600847998 /* ImageRotateViewController.m in Sources */,
 				0AE93A722093F7C50096286E /* ViewRecordViewController.m in Sources */,
@@ -1451,7 +1464,6 @@
 				C3FCBFCF1F305B37007EBB10 /* PLSFormatGifView.m in Sources */,
 				0ACE7C391ED8B072002FF4C9 /* PLSProgressBar.m in Sources */,
 				0AECA5001E88A60C00AF2931 /* RecordViewController.m in Sources */,
-				E311DDF6218C2E3900BEA0D1 /* FUManager.m in Sources */,
 				76564FCC210B2871004B62E9 /* VersionViewController.m in Sources */,
 				0AECA4F21E88466300AF2931 /* PlayViewController.m in Sources */,
 				C3A791371FA06F3A00C3F2D6 /* PLSLoadAnimationView.m in Sources */,
