@@ -1,150 +1,163 @@
-# FUQiniuShortVideoDemo 快速接入文档
+# FUQiniuShortVideoDemo 七牛短视频快速接入文档
 
-FUQiniuShortVideoDemo 是集成了 [Faceunity](https://github.com/Faceunity/FULiveDemo/tree/dev) 面部跟踪和虚拟道具功能和七牛短视频功能的 Demo。
+`FUQiniuShortVideoDemo` 是集成了 [Faceunity](https://github.com/Faceunity/FULiveDemo/tree/dev) 面部跟踪和虚拟道具功能 和  七牛云短视频的 Demo。
 
-本文是 FaceUnity SDK 快速对接七牛短视频的导读说明，关于 FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)
+**本文是 FaceUnity SDK  快速对接 七牛云短视频 的导读说明**
+
+**关于  FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)**
+
 
 ## 快速集成方法
 
 ### 一、导入 SDK
-将 FaceUnity 文件夹全部拖入工程中，并且添加依赖库 `OpenGLES.framework`、`Accelerate.framework`、`CoreMedia.framework`、`AVFoundation.framework`、`stdc++.tbd`
 
-### 二、快速加载道具
+将  FaceUnity  文件夹全部拖入工程中，NamaSDK所需依赖库为 `OpenGLES.framework`、`Accelerate.framework`、`CoreMedia.framework`、`AVFoundation.framework`、`libc++.tbd`、`CoreML.framework`
 
-在 `viewDidLoad:` 中调用快速加载道具函数，该函数会创建一个美颜道具及指定的贴纸道具。
+- 备注: 上述NamaSDK 依赖库使用 Pods 管理 会自动添加依赖,运行在iOS11以下系统时,需要手动添加`CoreML.framework`,并在**TARGETS -> Build Phases-> Link Binary With Libraries**将`CoreML.framework`手动修改为可选**Optional**
 
-```c
-[[FUManager shareManager] loadItems];
+### FaceUnity 模块简介
+```objc
+-FUManager              //nama 业务类
+-FUCamera               //视频采集类(示例程序未用到)    
+-authpack.h             //权限文件
++FUAPIDemoBar     //美颜工具条,可自定义
++items       //贴纸和美妆资源 xx.bundel文件
+      
 ```
 
-注：FUManager 的 shareManager 函数中会对 SDK 进行初始化，并设置默认的美颜参数。
 
-### 三、图像处理
+### 二、加入展示 FaceUnity SDK 美颜贴纸效果的  UI
 
-在 `shortVideoRecorder: cameraSourceDidGetPixelBuffer: ` 方法中获取视频数据，并对图像进行处理：
-
-```c
-#pragma mark - PLShortVideoRecorderDelegate 摄像头采集的视频数据的回调
-/// @abstract 获取到摄像头原数据时的回调, 便于开发者做滤镜等处理，需要注意的是这个回调在 camera 数据的输出线程，请不要做过于耗时的操作，否则可能会导致帧率下降
-- (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer {
-    //此处可以做美颜/滤镜等处理
-    // 是否在录制时使用滤镜，默认是关闭的，NO
-    if (self.isUseFilterWhenRecording) {
-        PLSFilter *filter = self.filterGroup.currentFilter;
-        pixelBuffer = [filter process:pixelBuffer];
-    }
-    /**     -----  FaceUnity  ----     **/
-    [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
-    /**     -----  FaceUnity  ----     **/
-    
-    return pixelBuffer;
-}
-```
-
-### 四、切换道具及调整美颜参数
-
-本例中通过添加 FUAPIDemoBar 来实现切换道具及调整美颜参数的具体实现，FUAPIDemoBar 是快速集成用的UI，客户可自定义UI。
-
-1、在 RecordViewController.m 中添加头文件，并创建 demoBar 属性
+1、在 `QNRecordingViewController.m`  中添加头文件，并创建页面属性
 
 ```C
-#import <FUAPIDemoBar/FUAPIDemoBar.h>
+/* faceU */
+#import "FUAPIDemoBar.h"
+#import "FUManager.h"
 
-@property (nonatomic, strong) FUAPIDemoBar *demoBar ;
+
+@property (nonatomic, strong) FUAPIDemoBar *demoBar;
+
 ```
 
-2、在 demoBar 的 get 方法中对其进行初始化，并遵循代理  FUAPIDemoBarDelegate，实现代理方法 `demoBarDidSelectedItem:` 和 `demoBarBeautyParamChanged`以进一步实现道具的切换及美颜参数的调整。
-
-初始化
+2、初始化 UI，并遵循代理  FUAPIDemoBarDelegate ，实现代理方法 `bottomDidChange:` 切换贴纸 和 `filterValueChange:` 更新美颜参数。
 
 ```C
-// demobar 初始化
+/// 初始化demoBar
 -(FUAPIDemoBar *)demoBar {
     if (!_demoBar) {
         
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 44, self.view.frame.size.width, 164)];
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 231, self.view.frame.size.width, 231)];
         
-        _demoBar.itemsDataSource = [FUManager shareManager].itemsDataSource;
-        _demoBar.selectedItem = [FUManager shareManager].selectedItem ;
-        
-        _demoBar.filtersDataSource = [FUManager shareManager].filtersDataSource ;
-        _demoBar.beautyFiltersDataSource = [FUManager shareManager].beautyFiltersDataSource ;
-        _demoBar.filtersCHName = [FUManager shareManager].filtersCHName ;
-        _demoBar.selectedFilter = [FUManager shareManager].selectedFilter ;
-        [_demoBar setFilterLevel:[FUManager shareManager].selectedFilterLevel forFilter:[FUManager shareManager].selectedFilter] ;
-        
-        _demoBar.skinDetectEnable = [FUManager shareManager].skinDetectEnable;
-        _demoBar.blurShape = [FUManager shareManager].blurShape ;
-        _demoBar.blurLevel = [FUManager shareManager].blurLevel ;
-        _demoBar.whiteLevel = [FUManager shareManager].whiteLevel ;
-        _demoBar.redLevel = [FUManager shareManager].redLevel;
-        _demoBar.eyelightingLevel = [FUManager shareManager].eyelightingLevel ;
-        _demoBar.beautyToothLevel = [FUManager shareManager].beautyToothLevel ;
-        _demoBar.faceShape = [FUManager shareManager].faceShape ;
-        
-        _demoBar.enlargingLevel = [FUManager shareManager].enlargingLevel ;
-        _demoBar.thinningLevel = [FUManager shareManager].thinningLevel ;
-        _demoBar.enlargingLevel_new = [FUManager shareManager].enlargingLevel ;
-        _demoBar.thinningLevel_new = [FUManager shareManager].thinningLevel ;
-        _demoBar.jewLevel = [FUManager shareManager].jewLevel ;
-        _demoBar.foreheadLevel = [FUManager shareManager].foreheadLevel ;
-        _demoBar.noseLevel = [FUManager shareManager].noseLevel ;
-        _demoBar.mouthLevel = [FUManager shareManager].mouthLevel ;
-        
-        _demoBar.delegate = self;
+        _demoBar.mDelegate = self;
     }
     return _demoBar ;
 }
+
 ```
 
-切换贴纸代理方法
+#### 切换贴纸
 
 ```C
-/**      FUAPIDemoBarDelegate       **/
-
 // 切换贴纸
-- (void)demoBarDidSelectedItem:(NSString *)itemName {
+-(void)bottomDidChange:(int)index{
+    if (index < 3) {
+        [[FUManager shareManager] setRenderType:FUDataTypeBeautify];
+    }
+    if (index == 3) {
+        [[FUManager shareManager] setRenderType:FUDataTypeStrick];
+    }
     
-    [[FUManager shareManager] loadItem:itemName];
+    if (index == 4) {
+        [[FUManager shareManager] setRenderType:FUDataTypeMakeup];
+    }
+    if (index == 5) {
+        [[FUManager shareManager] setRenderType:FUDataTypebody];
+    }
+}
+
+```
+
+#### 更新美颜参数
+
+```C
+// 更新美颜参数    
+- (void)filterValueChange:(FUBeautyParam *)param{
+    [[FUManager shareManager] filterValueChange:param];
 }
 ```
 
-更新美颜参数方法
+### 三、在 `viewDidLoad:` 调用 `setupFaceUnity` 方法,初始化SDK,添加美颜工具条
 
 ```C
-// 更新美颜参数
-- (void)demoBarBeautyParamChanged {
+
+- (void)setupFaceUnity {
+
+    // 加载FU美颜道具
+    [[FUManager shareManager] loadFilter];
+    [FUManager shareManager].isRender = YES;
+    [FUManager shareManager].flipx = YES;
+    [FUManager shareManager].trackFlipx = YES;
+    [self.view addSubview:self.demoBar];
     
-    [FUManager shareManager].skinDetectEnable = _demoBar.skinDetectEnable;
-    [FUManager shareManager].blurShape = _demoBar.blurShape;
-    [FUManager shareManager].blurLevel = _demoBar.blurLevel ;
-    [FUManager shareManager].whiteLevel = _demoBar.whiteLevel;
-    [FUManager shareManager].redLevel = _demoBar.redLevel;
-    [FUManager shareManager].eyelightingLevel = _demoBar.eyelightingLevel;
-    [FUManager shareManager].beautyToothLevel = _demoBar.beautyToothLevel;
-    [FUManager shareManager].faceShape = _demoBar.faceShape;
-    [FUManager shareManager].enlargingLevel = _demoBar.enlargingLevel;
-    [FUManager shareManager].thinningLevel = _demoBar.thinningLevel;
-    [FUManager shareManager].enlargingLevel_new = _demoBar.enlargingLevel_new;
-    [FUManager shareManager].thinningLevel_new = _demoBar.thinningLevel_new;
-    [FUManager shareManager].jewLevel = _demoBar.jewLevel;
-    [FUManager shareManager].foreheadLevel = _demoBar.foreheadLevel;
-    [FUManager shareManager].noseLevel = _demoBar.noseLevel;
-    [FUManager shareManager].mouthLevel = _demoBar.mouthLevel;
-    
-    [FUManager shareManager].selectedFilter = _demoBar.selectedFilter ;
-    [FUManager shareManager].selectedFilterLevel = _demoBar.selectedFilterLevel;
 }
+
 ```
 
-3、在 `viewDidLoad:` 中将 demoBar 添加到页面上
+### 四、在视频数据回调中 加入 FaceUnity  的数据处理
+
+在 `PLShortVideoRecorderDelegate`代理方法中 可以看到
 
 ```C
-[self.view addSubview:self.demoBar];
+/*!
+ @method shortVideoRecorder:pixelBuffer:
+ @abstract 获取到摄像头原数据时的回调, 便于开发者做滤镜等处理，需要注意的是这个回调在 camera 数据的输出线程，请不要做过于耗时的操作，否则可能会导致帧率下降
+ 
+ @param recorder PLShortVideoRecorder 实例
+ @param pixelBuffer 视频帧数据
+ @param timingInfo 采样时间信息
+ 
+ @since      v3.1.1
+ */
+- (CVPixelBufferRef __nonnull)shortVideoRecorder:(PLShortVideoRecorder *__nonnull)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef __nonnull)pixelBuffer timingInfo:(CMSampleTimingInfo)timingInfo;
+
 ```
 
-### 五、道具销毁
+```C
 
-视频录制结束时需要调用 `[[FUManager shareManager] destoryItems]`  销毁道具。
+- (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer timingInfo:(CMSampleTimingInfo)timingInfo{
+    
+    // 进行滤镜处理
+    if (self.isPanning) {
+        // 正在滤镜切换过程中，使用 processPixelBuffer:leftPercent:leftFilter:rightFilter 做滤镜切换动画
+        pixelBuffer = [self.filterGroup processPixelBuffer:pixelBuffer leftPercent:self.leftPercent leftFilter:self.leftFilter rightFilter:self.rightFilter];
+    } else {
+        // 正常滤镜处理
+        pixelBuffer = [self.filterGroup.currentFilter process:pixelBuffer];
+    }
 
-**快速集成完毕，关于 FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)**
+    if (!self.forbidFaceUnity) {
+        // FaceUnity 进行贴纸处理
+        pixelBuffer = [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
+    }
+    
+    return pixelBuffer;
+}
+    
+```
+
+
+
+### 五、销毁道具
+
+1 视图控制器生命周期结束时,销毁道具
+```C
+[[FUManager shareManager] destoryItems];
+```
+
+2 切换摄像头需要调用,切换摄像头
+```C
+[[FUManager shareManager] onCameraChange];
+```
+
+### 关于 FaceUnity SDK 的更多详细说明，请参看 [FULiveDemo](https://github.com/Faceunity/FULiveDemo/tree/dev)
