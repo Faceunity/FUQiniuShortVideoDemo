@@ -26,22 +26,17 @@
     
     // 延迟执行初始化，提升启动速度
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        // MARK: - TuSDK 初始化
-        [TuSDK initSdkWithAppKey:@"30398377e3ba5e5e-03-bshmr1"];
+        
 #ifdef DEBUG
         [PLShortVideoKitEnv initEnv];
         [PLShortVideoKitEnv enableFileLogging];
         [PLShortVideoKitEnv setLogLevel:(PLShortVideoLogLevelDebug)];
         
-        // MARK: - TuSDK 日志输出级别
-        [TuSDK setLogLevel:lsqLogLevelDEBUG]; // 可选: 设置日志输出级别 (默认不输出)
         NSLog(@"PLShortVideoKit version: %@", PLShortVideoRecorder.versionInfo);
-        NSLog(@"TuSDK version: %@", lsqSDKVersion);
-        NSLog(@"TuSDK video version: %@", lsqVideoVersion);
         NSLog(@"FaceUnity version: %@", [FURenderer getVersion]);
 #else
         [PLShortVideoKitEnv setLogLevel:(PLShortVideoLogLevelOff)];
-        [TuSDK setLogLevel:lsqLogLevelFATAL]; // 可选: 设置日志输出级别 (默认不输出)
+     
 #endif
     });
 

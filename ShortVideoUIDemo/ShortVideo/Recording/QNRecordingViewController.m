@@ -234,11 +234,11 @@ FUAPIDemoBarDelegate
     [self.musicButton setTitle:@"音乐" forState:(UIControlStateNormal)];
     [self.musicButton addTarget:self action:@selector(clickMusicButton:) forControlEvents:(UIControlEventTouchUpInside)];
     
-    self.filterButton = [[QNVerticalButton alloc] init];
-    self.filterButton.titleLabel.font = [UIFont systemFontOfSize:14];
-    [self.filterButton setImage:[UIImage imageNamed:@"qn_filter"] forState:(UIControlStateNormal)];
-    [self.filterButton setTitle:@"滤镜" forState:(UIControlStateNormal)];
-    [self.filterButton addTarget:self action:@selector(clickFilterButton:) forControlEvents:(UIControlEventTouchUpInside)];
+//    self.filterButton = [[QNVerticalButton alloc] init];
+//    self.filterButton.titleLabel.font = [UIFont systemFontOfSize:14];
+//    [self.filterButton setImage:[UIImage imageNamed:@"qn_filter"] forState:(UIControlStateNormal)];
+//    [self.filterButton setTitle:@"滤镜" forState:(UIControlStateNormal)];
+//    [self.filterButton addTarget:self action:@selector(clickFilterButton:) forControlEvents:(UIControlEventTouchUpInside)];
     
     superView = self.topBarView;
     
@@ -275,18 +275,18 @@ FUAPIDemoBarDelegate
     
     superView = self.rightBarView;
     [superView addSubview:self.musicButton];
-    [superView addSubview:self.filterButton];
+//    [superView addSubview:self.filterButton];
     
     [self.musicButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.right.equalTo(superView);
         make.size.equalTo(self.cameraButton);
     }];
     
-    [self.filterButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.musicButton);
-        make.size.equalTo(self.musicButton);
-        make.top.equalTo(self.musicButton.mas_bottom).offset(10);
-    }];
+//    [self.filterButton mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.right.equalTo(self.musicButton);
+//        make.size.equalTo(self.musicButton);
+//        make.top.equalTo(self.musicButton.mas_bottom).offset(10);
+//    }];
 
     superView = self.view;
     [superView addSubview:self.faceUnityButton];
@@ -725,6 +725,7 @@ FUAPIDemoBarDelegate
     plsMovieSettings[PLSVolumeKey] = [NSNumber numberWithFloat:1.0f];
     outputSettings[PLSMovieSettingsKey] = plsMovieSettings;
     
+    // 进入编辑页面
     QNEditorViewController *editorViewController = [[QNEditorViewController alloc] init];
     editorViewController.settings = outputSettings;
     editorViewController.fileURLArray = urls;
@@ -1079,24 +1080,23 @@ FUAPIDemoBarDelegate
     [FUManager shareManager].isRender = YES;
     [FUManager shareManager].flipx = YES;
     [FUManager shareManager].trackFlipx = YES;
-    [self.view addSubview:self.demoBar];
+    
+    _demoBar = [[FUAPIDemoBar alloc] init];
+    _demoBar.mDelegate = self;
+    [self.view addSubview:_demoBar];
+    
+    [_demoBar mas_makeConstraints:^(MASConstraintMaker *make) {
+        
+        make.bottom.mas_equalTo(self.rateControl.mas_top)
+        .mas_offset(-25);
+        make.left.right.mas_equalTo(0);
+        make.height.mas_equalTo(195);
+    }];
+    
     
 }
 
 #pragma mark --------------FaceUnity
-
-
-/// 初始化demoBar
--(FUAPIDemoBar *)demoBar {
-    if (!_demoBar) {
-        
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 231, self.view.frame.size.width, 231)];
-        
-        _demoBar.mDelegate = self;
-    }
-    return _demoBar ;
-}
-
 /// 销毁道具
 - (void)destoryFaceunityItems
 {
