@@ -22,14 +22,6 @@
 #import "QNMVPickerView.h"
 #import "QNUploadViewController.h"
 
-
-// TuSDK effect
-#import <TuSDK/TuSDK.h>
-#import <TuSDKVideo/TuSDKVideo.h>
-#import "TuSDKConstants.h"
-#import "EffectsView.h"
-#import "FilterPanelView.h"
-
 @interface QNEditorViewController ()
 <
 // 短视频
@@ -45,13 +37,7 @@ UIGestureRecognizerDelegate,
 QNAudioVolumeViewDelegate,
 QNMVPickerViewDelegate,
 QNEditorTextStickerViewDelegate,
-QNTextInputViewDelegate,
-
-// TuSDK mark
-QNFilterPickerViewDelegate,
-EffectsViewEventDelegate,
-TuSDKFilterProcessorDelegate,
-TuSDKFilterProcessorMediaEffectDelegate
+QNTextInputViewDelegate
 >
 
 @property (nonatomic, strong) AVAsset *originAsset;
@@ -120,32 +106,6 @@ TuSDKFilterProcessorMediaEffectDelegate
 // 获取时间进度缩略图，多个编辑 view 公用，减小内存使用
 @property (nonatomic, strong) NSMutableArray *thumbImageArray;
 
-// MARK: - TuSDK
-// 视频总时长，进入页面时，需设置改参数
-@property (nonatomic, assign) CGFloat videoTotalTime;
-
-//滤镜处理类
-@property (nonatomic, strong) TuSDKFilterProcessor *filterProcessor;
-
-// 场景特效视图
-@property (nonatomic, strong) EffectsView *tuSDKEffectsView;
-// 场景特效随机色数组
-@property (nonatomic, strong) NSArray<UIColor *> *displayColors;
-
-// 滤镜视图
-@property (nonatomic, strong) FilterPanelView *tuSDKFilterView;
-
-// 视频处理进度 0~1
-@property (nonatomic, assign) CGFloat videoProgress;
-// 当前使用的特效model  视频合成时使用
-@property (nonatomic, assign) NSInteger effectsIndex;
-// 正在切换滤镜 视频合成时使用
-@property (nonatomic, assign) BOOL isSwitching;
-
-// 当前正在编辑的特效
-@property (nonatomic, strong) id<TuSDKMediaEffect> editingEffectData;
-//当前获取的滤镜对象；
-@property (nonatomic, strong) id<TuSDKMediaEffect> applyingEffectData;
 
 @end
 
@@ -198,8 +158,6 @@ TuSDKFilterProcessorMediaEffectDelegate
     [self setupShortVideoEditor];
     [self setupGesture];
     
-    // TuSDK mark 视频特效和高级滤镜
-    [self setupTuSDKFilter];
 }
 
 #pragma mark - 编辑类
@@ -288,8 +246,6 @@ TuSDKFilterProcessorMediaEffectDelegate
     if ([classArray containsObject:NSStringFromClass(QNGradientView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNEditorMusicView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNEditorGIFStickerView.class)]) return NO;
-    if ([classArray containsObject:NSStringFromClass(EffectsView.class)])return NO;
-    if ([classArray containsObject:NSStringFromClass(FilterPanelView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNAudioVolumeView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNMVPickerView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNEditorTextStickerView.class)]) return NO;
@@ -386,16 +342,14 @@ TuSDKFilterProcessorMediaEffectDelegate
     
     UIButton* buttons[9];
     NSString *titles[] = {
-        @"高级滤镜", @"特效", @"动图", @"MV", @"涂鸦", @"文字", @"音乐", @"音量", @"滤镜"
+        @"动图", @"MV", @"涂鸦", @"文字", @"音乐", @"音量", @"滤镜"
     };
     
     NSString *imageNames[] = {
-        @"qn_tutu_filter", @"qn_effect", @"qn_gif", @"qn_mv", @"qn_tuya", @"qn_text", @"qn_music", @"qn_volume", @"qn_filter"
+        @"qn_gif", @"qn_mv", @"qn_tuya", @"qn_text", @"qn_music", @"qn_volume", @"qn_filter"
     };
     
     SEL selectors[] = {
-        @selector(clickTuSDKFilterButton:),
-        @selector(clickTuSDKEffectsButton:),
         @selector(clickGIFButton:),
         @selector(clickMVButton:),
         @selector(clickTuYaButton:),
@@ -473,12 +427,6 @@ TuSDKFilterProcessorMediaEffectDelegate
     
     if (self.mvPickerView && [self viewIsShow:self.mvPickerView]) {
         [self hideView:self.mvPickerView update:YES];
-        [self exitEditingMode];
-        return;
-    }
-    
-    if (self.tuSDKFilterView && [self viewIsShow:self.tuSDKFilterView]) {
-        [self hideView:self.tuSDKFilterView update:YES];
         [self exitEditingMode];
         return;
     }
@@ -1386,10 +1334,6 @@ TuSDKFilterProcessorMediaEffectDelegate
     
     [self stopEditing];
     
-    // TuSDK mark 导出带视频特效的视频时，先重置标记位
-    [self resetExportVideoEffectsMark];
-    // TuSDK end
-    
     // 贴纸信息
     [self.stickerSettingsArray removeAllObjects];
     for (int i = 0; i < self.stickerOverlayView.subviews.count; i++) {
@@ -1492,10 +1436,6 @@ TuSDKFilterProcessorMediaEffectDelegate
     [exportSession setCompletionBlock:^(NSURL *url) {
         NSLog(@"Asset Export Completed");
         
-        // TuSDK mark 视频特效预览，先重置标记位
-        [weakSelf resetPreviewVideoEffectsMark];
-        // TuSDK end
-        
         dispatch_async(dispatch_get_main_queue(), ^{
             [weakSelf hideWating];
             [weakSelf gotoNextController:url];
@@ -1504,10 +1444,6 @@ TuSDKFilterProcessorMediaEffectDelegate
     
     [exportSession setFailureBlock:^(NSError *error) {
         NSLog(@"Asset Export Failed: %@", error);
-        
-        // TuSDK mark 视频特效预览，先重置标记位
-        [weakSelf resetPreviewVideoEffectsMark];
-        // TuSDK end
         
         dispatch_async(dispatch_get_main_queue(), ^{
             [weakSelf hideWating];
@@ -1562,12 +1498,6 @@ TuSDKFilterProcessorMediaEffectDelegate
 // 编辑时处理视频数据，并将加了滤镜效果的视频数据返回
 - (CVPixelBufferRef)shortVideoEditor:(PLShortVideoEditor *)editor didGetOriginPixelBuffer:(CVPixelBufferRef)pixelBuffer timestamp:(CMTime)timestamp {
     
-    // TuSDK mark
-    self.videoProgress = CMTimeGetSeconds(timestamp) / self.videoTotalTime;
-    pixelBuffer = [self.filterProcessor syncProcessPixelBuffer:pixelBuffer frameTime:timestamp];
-    [self.filterProcessor destroyFrameData];
-    // TuSDK mark end
-    
     dispatch_async(dispatch_get_main_queue(), ^{
         
         self.playingTimeLabel.text = [self formatTimeString:CMTimeGetSeconds(timestamp)];
@@ -1612,11 +1542,6 @@ TuSDKFilterProcessorMediaEffectDelegate
                 }
             }
         }
-        
-        // TuSDK mark
-        [self.tuSDKEffectsView.displayView updateLastSegmentViewProgress:self.videoProgress];
-        self.tuSDKEffectsView.displayView.currentLocation = self.videoProgress;
-        // TuSDK mark end
     });
     
     return pixelBuffer;
@@ -1625,150 +1550,9 @@ TuSDKFilterProcessorMediaEffectDelegate
 - (void)shortVideoEditor:(PLShortVideoEditor *)editor didReadyToPlayForAsset:(AVAsset *)asset timeRange:(CMTimeRange)timeRange {
     NSLog(@"%s, line:%d", __FUNCTION__, __LINE__);
     
-    // MARK: - TuSDK mark
-    self.videoProgress = 0.0;
-    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.playImageView scaleHideAnimation];
     });
-}
-
-- (void)shortVideoEditor:(PLShortVideoEditor *)editor didReachEndForAsset:(AVAsset *)asset timeRange:(CMTimeRange)timeRange {
-    NSLog(@"%s, line:%d", __FUNCTION__, __LINE__);
-    // MARK: - TuSDK mark
-    self.videoProgress = 1.0;
-    [self endCurrentEffect:self.originAsset.duration];
-    // MARK: - TuSDK end
-}
-
-#pragma mark -  PLSAVAssetExportSessionDelegate 合成视频文件给视频数据加滤镜效果的回调
-- (CVPixelBufferRef)assetExportSession:(PLSAVAssetExportSession *)assetExportSession didOutputPixelBuffer:(CVPixelBufferRef)pixelBuffer timestamp:(CMTime)timestamp {
-    
-    CVPixelBufferRef tempPixelBuffer = pixelBuffer;
-    
-    // TuSDK mark
-    tempPixelBuffer = [self.filterProcessor syncProcessPixelBuffer:pixelBuffer frameTime:timestamp];
-    [self.filterProcessor destroyFrameData];
-    // TuSDK end
-
-    return tempPixelBuffer;
-}
-
-#pragma mark - 涂图相关
-
-// 涂图滤镜，七牛短视频 app UI 上没有显示，有需要的开发者可以作为参考
-- (void)clickTuSDKFilterButton:(UIButton *)button {
-    [self adjustScrollContentOffset:button.frame];
-    [self showTuSDKFiterView];
-}
-
-// 涂图特效
-- (void)clickTuSDKEffectsButton:(UIButton *)button {
-    [self adjustScrollContentOffset:button.frame];
-    [self showTuSDKEffectsView];
-}
-
-// 设置 TuSDK
-- (void)setupTuSDKFilter {
-    // 视频总时长
-    self.videoTotalTime = CMTimeGetSeconds(self.originAsset.duration);
-    
-    // 传入图像的方向是否为原始朝向(相机采集的原始朝向)，SDK 将依据该属性来调整人脸检测时图片的角度。如果没有对图片进行旋转，则为 YES
-    BOOL isOriginalOrientation = NO;
-    
-    self.filterProcessor = [[TuSDKFilterProcessor alloc] initWithFormatType:kCVPixelFormatType_32BGRA isOriginalOrientation:isOriginalOrientation];
-    self.filterProcessor.mediaEffectDelegate = self;
-    
-    // 默认关闭动态贴纸功能，即关闭人脸识别功能, 这里只是用特效，不需要人脸识别
-    self.filterProcessor.enableLiveSticker = NO;
-}
-
-// 初始化TuSDK滤镜选择栏
-- (void)showTuSDKEffectsView {
-    
-    if (!self.tuSDKEffectsView) {
-        // 场景特效视图
-        self.displayColors = [self getRandomColorWithCount:kScenceCodes.count];
-        
-        // 场景特效视图
-        CGFloat height = 200;
-        CGRect rc = CGRectMake(0, self.view.bounds.size.height, self.view.bounds.size.width, height);
-        self.tuSDKEffectsView = [[EffectsView alloc] initWithFrame:rc thumbImageArray:self.thumbImageArray];
-        self.tuSDKEffectsView.backgroundColor = QN_COMMON_BACKGROUND_COLOR;
-        self.tuSDKEffectsView.effectEventDelegate = self;
-        self.tuSDKEffectsView.effectsCode = kScenceCodes;
-        self.tuSDKEffectsView.hidden = YES;
-        [self.view addSubview:self.tuSDKEffectsView];
-        
-        // 撤销特效的按钮
-        UIButton *revocationButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [revocationButton setImage:[UIImage imageNamed:@"qn_revocation"] forState:UIControlStateNormal];
-        [revocationButton addTarget:self action:@selector(didTouchUpRemoveSceneMediaEffectButton:) forControlEvents:UIControlEventTouchUpInside];
-        [self.tuSDKEffectsView addSubview:revocationButton];
-        
-        [revocationButton mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.right.equalTo(self.tuSDKEffectsView).offset(-15);
-            make.centerY.equalTo(self.tuSDKEffectsView.displayView);
-            make.size.equalTo(CGSizeMake(44, 44));
-        }];
-        
-        [self.tuSDKEffectsView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.right.bottom.equalTo(self.view);
-            make.top.equalTo(self.mas_bottomLayoutGuide).offset(-height);
-        }];
-        
-        [self.view layoutIfNeeded];
-        [self hideView:self.tuSDKEffectsView update:NO];
-        [self.view layoutIfNeeded];
-        
-        self.tuSDKEffectsView.hidden = NO;
-    }
-    [self entryEditingMode];
-    [self stopEditing];
-    [self showView:self.tuSDKEffectsView update:YES];
-    [self.shortVideoEditor seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {}];
-    self.tuSDKEffectsView.progress = 0;
-}
-
-- (void)hideTuSDKEffectView {
-    
-    // 预览 view 重新恢复到全屏
-    [self.shortVideoEditor.previewView mas_remakeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view);
-    }];
-    
-    [self hideView:self.tuSDKEffectsView update:YES];
-    [self exitEditingMode];
-    [self startEditing];
-}
-
-- (void)showTuSDKFiterView {
-    
-    if (!_tuSDKFilterView) {
-        
-        CGSize size = self.view.bounds.size;
-        CGFloat filterPanelHeight = 276;
-        
-        // 滤镜视图
-        _tuSDKFilterView = [[FilterPanelView alloc] initWithFrame:CGRectMake(0, 0, size.width, filterPanelHeight)];
-        _tuSDKFilterView.delegate = (id<FilterPanelDelegate>)self;
-        _tuSDKFilterView.dataSource = (id<CameraFilterPanelDataSource>)self;
-        _tuSDKFilterView.codes = @[kVideoEditFilterCodes];
-        
-        [self.view addSubview:_tuSDKFilterView];
-        
-        [_tuSDKFilterView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.right.bottom.equalTo(self.view);
-            make.top.equalTo(self.mas_bottomLayoutGuide).offset(-filterPanelHeight);
-        }];
-        
-        [self.view layoutIfNeeded];
-        [self hideView:_tuSDKFilterView update:NO];
-        [self.view layoutIfNeeded];
-    }
-    
-    [self showView:self.tuSDKFilterView update:YES];
-    [self entryEditingMode];
 }
 
 
@@ -1779,178 +1563,6 @@ TuSDKFilterProcessorMediaEffectDelegate
         [colorArr addObject:color];
     }
     return colorArr;
-}
-
-- (void)resetExportVideoEffectsMark {
-    [self.filterProcessor addMediaEffect:nil];
-}
-
-// 重置标志位
-- (void)resetPreviewVideoEffectsMark {
-    [self.filterProcessor addMediaEffect:nil];
-}
-
-- (void)endCurrentEffect:(CMTime)endTime {
-    
-    if (self.editingEffectData) {
-        // 停止视频预览
-        [self stopEditing];
-        
-        // 结束视频特效处理
-        self.editingEffectData.atTimeRange = [TuSDKTimeRange makeTimeRangeWithStart: self.editingEffectData.atTimeRange.start end:endTime];
-        self.editingEffectData = nil;
-        // 结束更新特效 UI
-        [self.tuSDKEffectsView.displayView addSegmentViewEnd];
-    }
-}
-
-/** 移除最后添加的场景特效 */
-- (void)didTouchUpRemoveSceneMediaEffectButton:(UIButton *)button
-{
-    [self stopEditing];
-    
-    [self.tuSDKEffectsView.displayView removeLastSegment];
-    
-    // 移除最后一个指定类型的特效
-    /** 1. 通过 mediaEffectsWithType: 获取指定类型的已有特效信息 */
-    NSArray<id<TuSDKMediaEffect>> *mediaEffects = [_filterProcessor mediaEffectsWithType:TuSDKMediaEffectDataTypeScene];
-    
-    if (mediaEffects.count) {
-        /** 2. 获取最后一次添加的特效 */
-        id<TuSDKMediaEffect> lastMediaEffectData = [mediaEffects lastObject];
-        /** 3. 通过 removeMediaEffect： 移除指定特效 */
-        [_filterProcessor removeMediaEffect:lastMediaEffectData];
-    }
-}
-
-
-#pragma mark - CameraFilterPanelDataSource
-
-/**
- 滤镜参数个数
- 
- @return 滤镜参数数量
- */
-- (NSInteger)numberOfParamter {
-    
-    TuSDKMediaFilterEffect *filterEffect = [_filterProcessor mediaEffectsWithType:TuSDKMediaEffectDataTypeFilter].firstObject;
-    return filterEffect.filterArgs.count;
-}
-
-/**
- 滤镜参数名称
- 
- @param index 滤镜索引
- @return 滤镜索引
- */
-- (NSString *)paramterNameAtIndex:(NSUInteger)index {
-    TuSDKMediaFilterEffect *filterEffect = [_filterProcessor mediaEffectsWithType:TuSDKMediaEffectDataTypeFilter].firstObject;
-    return filterEffect.filterArgs[index].key;
-}
-
-/**
- 滤镜参数值
- 
- @param index 滤镜参数索引
- @return 滤镜参数百分比
- */
-- (double)percentValueAtIndex:(NSUInteger)index {
-    TuSDKMediaFilterEffect *filterEffect = [_filterProcessor mediaEffectsWithType:TuSDKMediaEffectDataTypeFilter].firstObject;
-    return filterEffect.filterArgs[index].precent;
-}
-
-
-#pragma mark - FilterPanelDelegate
-
-/**
- 滤镜选中回调
- 
- @param filterPanel 相机滤镜协议
- @param code 滤镜的 fitlerCode
- */
-- (void)filterPanel:(id<FilterPanelProtocol>)filterPanel didSelectedFilterCode:(NSString *)code {
-    TuSDKMediaFilterEffect *filterEffect = [[TuSDKMediaFilterEffect alloc] initWithEffectCode:code];
-    [_filterProcessor addMediaEffect:filterEffect];
-    [_tuSDKFilterView reloadFilterParamters];
-}
-
-/**
- 滤镜视图参数变更回调
- 
- @param filterPanel 相机滤镜协议
- @param percentValue 滤镜参数变更数值
- @param index 滤镜参数索引
- */
-- (void)filterPanel:(id<FilterPanelProtocol>)filterPanel didChangeValue:(double)percentValue paramterIndex:(NSUInteger)index {
-    // 设置当前滤镜的参数，并 `-submitParameter` 提交参数让其生效
-    
-    TuSDKMediaFilterEffect *filterEffect = [_filterProcessor mediaEffectsWithType:TuSDKMediaEffectDataTypeFilter].firstObject;
-    [filterEffect submitParameter:index argPrecent:percentValue];
-    
-}
-
-/**
- 特效被移除通知
- 
- @param processor TuSDKFilterProcessor
- @param mediaEffects 被移除的特效列表
- @since      v2.2.0
- */
-- (void)onVideoProcessor:(TuSDKFilterProcessor *)processor didRemoveMediaEffects:(NSArray<id<TuSDKMediaEffect>> *)mediaEffects;
-{
-    // 当特效数据被移除时触发该回调，以下情况将会触发：
-    
-    // 1. 当特效不支持添加多个时 SDK 内部会自动移除不可叠加的特效
-    // 2. 当开发者调用 removeMediaEffect / removeMediaEffectsWithType: / removeAllMediaEffects 移除指定特效时
-    
-}
-
-#pragma mark EffectsViewEventDelegate
-
-/**
- 按下了场景特效 触发编辑功能
- 
- @param effectsView 特效视图
- @param effectCode 特效代号
- */
-- (void)effectsView:(EffectsView *)effectsView didSelectMediaEffectCode:(NSString *)effectCode
-{
-    // 启动视频预览
-    [self startEditing];
-    
-    if (self.videoProgress >= 1) {
-        self.videoProgress = 0;
-    }
-    
-    // 添加特效步骤
-    
-    // step 1: 构建指定类型的特效数据
-    _editingEffectData = [[TuSDKMediaSceneEffect alloc] initWithEffectsCode:effectCode];
-    
-    // step 2: 设置特效触发时间
-    //    提示： 由于开始编辑特殊特效时不知道结束时间，添加特效时可以将结束时间设置为一个特大值（实现全程预览），结束编辑时再置为正确结束时间。
-    _editingEffectData.atTimeRange = [TuSDKTimeRange makeTimeRangeWithStart:[self.shortVideoEditor currentTime] end:CMTimeMake(INTMAX_MAX, 1)];
-    
-    // step 3: 使用 addMediaEffect： 添加特效
-    [self.filterProcessor addMediaEffect:_editingEffectData];
-    
-    // 开始更新特效 UI
-    [self.tuSDKEffectsView.displayView addSegmentViewBeginWithStartLocation:self.videoProgress WithColor:[self.displayColors objectAtIndex:[kScenceCodes indexOfObject:effectCode]]];
-}
-
-/**
- 结束编辑场景特效
- 
- @param effectsView 场景特效视图
- @param effectCode 场景特效代号
- */
-- (void)effectsView:(EffectsView *)effectsView didDeSelectMediaEffectCode:(NSString *)effectCode;
-{
-    [self endCurrentEffect:self.shortVideoEditor.currentTime];
-}
-
-- (void)effectsViewEndEditing:(EffectsView *)effectsView {
-    [self hideTuSDKEffectView];
 }
 
 #pragma mark - custom methods

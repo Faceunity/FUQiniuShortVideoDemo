@@ -44,15 +44,17 @@
 
 ```C
 /// 初始化demoBar
--(FUAPIDemoBar *)demoBar {
-    if (!_demoBar) {
+    _demoBar = [[FUAPIDemoBar alloc] init];
+    _demoBar.mDelegate = self;
+    [self.view addSubview:_demoBar];
+    
+    [_demoBar mas_makeConstraints:^(MASConstraintMaker *make) {
         
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 164 - 231, self.view.frame.size.width, 231)];
-        
-        _demoBar.mDelegate = self;
-    }
-    return _demoBar ;
-}
+        make.bottom.mas_equalTo(self.rateControl.mas_top)
+        .mas_offset(-25);
+        make.left.right.mas_equalTo(0);
+        make.height.mas_equalTo(195);
+    }];
 
 ```
 
@@ -91,14 +93,30 @@
 
 ```C
 
+#pragma mark - 相芯科技贴纸
+
 - (void)setupFaceUnity {
 
-    // 加载FU美颜道具
+    [[FUTestRecorder shareRecorder] setupRecord];
+    
+    // 加载FU
     [[FUManager shareManager] loadFilter];
     [FUManager shareManager].isRender = YES;
     [FUManager shareManager].flipx = YES;
     [FUManager shareManager].trackFlipx = YES;
-    [self.view addSubview:self.demoBar];
+    
+    _demoBar = [[FUAPIDemoBar alloc] init];
+    _demoBar.mDelegate = self;
+    [self.view addSubview:_demoBar];
+    
+    [_demoBar mas_makeConstraints:^(MASConstraintMaker *make) {
+        
+        make.bottom.mas_equalTo(self.rateControl.mas_top)
+        .mas_offset(-25);
+        make.left.right.mas_equalTo(0);
+        make.height.mas_equalTo(195);
+    }];
+    
     
 }
 

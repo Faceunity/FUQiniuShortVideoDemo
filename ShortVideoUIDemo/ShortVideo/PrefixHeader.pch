@@ -43,9 +43,6 @@
 // MARK: - 七牛短视频 SDK
 #import <PLShortVideoKit/PLShortVideoKit.h>
 
-// MARK: - 涂图特效
-#import <TuSDK/TuSDK.h>
-#import <TuSDKVideo/TuSDKVideo.h>
 
 // MARK: - 相芯科技
 #import <libCNamaSDK/FURenderer.h>
