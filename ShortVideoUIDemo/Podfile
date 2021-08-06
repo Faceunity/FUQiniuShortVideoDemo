@@ -7,13 +7,12 @@ target 'ShortVideo' do
 
   # Pods for ShortVideo
 
-  pod "PLShortVideoKit"
+  pod 'PLShortVideoKit', '~> 3.2.4'
   pod 'Masonry'
   pod 'MMMaterialDesignSpinner'
   pod 'JGProgressHUD'
   pod 'SDWebImage'
   pod 'SDCycleScrollView','>= 1.80'
   pod 'SVProgressHUD'
-  pod 'Nama', '~> 7.2.0'
   
 end

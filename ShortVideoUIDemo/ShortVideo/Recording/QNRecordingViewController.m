@@ -27,11 +27,12 @@
  相芯科技的贴纸，美颜，大眼，瘦脸等特效的使用类
  */
 #import "QNMusicPickerView.h"
+
+/**faceU */
 #import "FUManager.h"
-#import "FUAPIDemoBar.h"
-
 #import "FUTestRecorder.h"
-
+#import "FUAPIDemoBar.h"
+#import "UIViewController+FaceUnityUIExtension.h"
 
 @interface QNRecordingViewController ()
 <
@@ -40,8 +41,7 @@ PLShortVideoRecorderDelegate,
 MPMediaPickerControllerDelegate,
 QNMusicPickerViewDelegate,
 QNFilterPickerViewDelegate,
-QNTextPageControlDelegate,
-FUAPIDemoBarDelegate
+QNTextPageControlDelegate
 >
 
 // 顶部及右侧的 button 是图
@@ -90,16 +90,18 @@ FUAPIDemoBarDelegate
 @property (nonatomic, strong) UILabel *faceUnityTipLabel;
 @property (nonatomic, assign) BOOL forbidFaceUnity;
 
-// FaceUnity mark
-@property(nonatomic, strong) FUAPIDemoBar *demoBar;
-
 
 @end
 
 @implementation QNRecordingViewController
 
 - (void)dealloc {
-    [[FUManager shareManager] destoryItems];
+    
+    if (self.isuseFU) {
+       
+        [[FUManager shareManager] destoryItems];
+    }
+
     NSLog(@"dealloc: %@", [[self class] description]);
 }
 
@@ -132,6 +134,16 @@ FUAPIDemoBarDelegate
     [super viewDidLoad];
 
     [self setupUI];
+    
+    if (self.isuseFU) {
+        // 初始化 FaceUnity 美颜等参数
+        [self setupFaceUnity];
+        
+    }else{
+        
+        // 测试时查看帧率性能
+        [[FUTestRecorder shareRecorder] setupRecord];
+    }
 }
 
 #pragma mark - set up UI
@@ -342,9 +354,6 @@ FUAPIDemoBarDelegate
     self.rateIndicatorView.frame = CGRectMake(300.0 / 5 * 2, 0, 300.0 / 5, 36);
     [self setupRecorder];
     [self setupFilter];
-    
-    // 初始化 FaceUnity 美颜等参数
-    [self setupFaceUnity];
     
     #ifdef DEBUG
         // 这个 debug 版本对比效果添加的 button
@@ -568,12 +577,15 @@ FUAPIDemoBarDelegate
     
     self.flashButton.selected = NO;
     button.enabled = NO;
+    __weak __typeof(self)weakSelf = self;
     [self.recorder toggleCamera:^(BOOL isFinish) {
         dispatch_async(dispatch_get_main_queue(), ^{
             button.enabled = YES;
             
-            [[FUManager shareManager] onCameraChange];
-            
+            if (weakSelf.isuseFU) {
+                
+                [[FUManager shareManager] onCameraChange];
+            }
         });
     }];
 }
@@ -1002,8 +1014,14 @@ FUAPIDemoBarDelegate
     if (!self.forbidFaceUnity) {
         
         [[FUTestRecorder shareRecorder] processFrameWithLog];
-        // FaceUnity 进行贴纸处理
-        pixelBuffer = [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
+        
+        if (self.isuseFU) {
+            
+            // FaceUnity 进行贴纸处理
+            pixelBuffer = [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
+            // 未检测到人脸时,提示信息
+            [self checkAI];
+        }
     }
     
     return pixelBuffer;
@@ -1067,68 +1085,6 @@ FUAPIDemoBarDelegate
     AVAsset *asset = self.recorder.assetRepresentingAllFiles;
     [self playEvent:asset];
     self.recordingButton.selected = NO;
-}
-
-#pragma mark - 相芯科技贴纸
-
-- (void)setupFaceUnity {
-
-    [[FUTestRecorder shareRecorder] setupRecord];
-    
-    // 加载FU
-    [[FUManager shareManager] loadFilter];
-    [FUManager shareManager].isRender = YES;
-    [FUManager shareManager].flipx = YES;
-    [FUManager shareManager].trackFlipx = YES;
-    
-    _demoBar = [[FUAPIDemoBar alloc] init];
-    _demoBar.mDelegate = self;
-    [self.view addSubview:_demoBar];
-    
-    [_demoBar mas_makeConstraints:^(MASConstraintMaker *make) {
-        
-        make.bottom.mas_equalTo(self.rateControl.mas_top)
-        .mas_offset(-25);
-        make.left.right.mas_equalTo(0);
-        make.height.mas_equalTo(195);
-    }];
-    
-    
-}
-
-#pragma mark --------------FaceUnity
-/// 销毁道具
-- (void)destoryFaceunityItems
-{
-
-    [[FUManager shareManager] destoryItems];
-    
-}
-
-#pragma -FUAPIDemoBarDelegate
--(void)filterValueChange:(FUBeautyParam *)param{
-    [[FUManager shareManager] filterValueChange:param];
-}
-
--(void)switchRenderState:(BOOL)state{
-    [FUManager shareManager].isRender = state;
-}
-
--(void)bottomDidChange:(int)index{
-    if (index < 3) {
-        [[FUManager shareManager] setRenderType:FUDataTypeBeautify];
-    }
-    if (index == 3) {
-        [[FUManager shareManager] setRenderType:FUDataTypeStrick];
-    }
-    
-    if (index == 4) {
-        [[FUManager shareManager] setRenderType:FUDataTypeMakeup];
-    }
-    if (index == 5) {
-        
-        [[FUManager shareManager] setRenderType:FUDataTypebody];
-    }
 }
 
 

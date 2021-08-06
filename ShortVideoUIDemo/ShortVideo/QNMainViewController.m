@@ -44,6 +44,9 @@ SDCycleScrollViewDelegate
 
 @property (nonatomic, strong) NSMutableArray *defaultArrays;
 @property (nonatomic, strong) NSArray *infoNames;
+
+@property(nonatomic, assign) BOOL isuseFU;
+
 @end
 
 @implementation QNMainViewController
@@ -103,6 +106,20 @@ SDCycleScrollViewDelegate
     logoImageView.frame = CGRectMake(20, 26 + space, 83, 22);
     [self.view addSubview:logoImageView];
     
+    UILabel *fuLbl = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(logoImageView.frame) + 20, 26 + space, 64, 28)];
+    fuLbl.text = @"FU开关";
+    fuLbl.textColor = [UIColor whiteColor];
+    fuLbl.font = [UIFont systemFontOfSize:16];
+    UISwitch *fuswitch = [[UISwitch alloc] initWithFrame:CGRectMake(CGRectGetMaxX(fuLbl.frame), 26 + space, 28, 28)];
+    [fuswitch addTarget:self action:@selector(selectedFUChanged:) forControlEvents:(UIControlEventValueChanged)];
+    [fuswitch setOn:YES];
+    // 默认YES
+    self.isuseFU = YES;
+    
+    [self.view addSubview:fuLbl];
+    [self.view addSubview:fuswitch];
+    
+    
     UIButton *settingButton = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame) - 54, 20 + space, 34, 34)];
     [settingButton setImage:[UIImage imageNamed:@"qn_main_setting"] forState:(UIControlStateNormal)];
     [settingButton addTarget:self action:@selector(clickSettingButton:) forControlEvents:(UIControlEventTouchUpInside)];
@@ -112,6 +129,11 @@ SDCycleScrollViewDelegate
     CGFloat fengeHeight = 0.112 * viewWidth;
     fengeImageView.frame = CGRectMake(0, CGRectGetHeight(self.bannerScrollView.frame) + space - fengeHeight, viewWidth, fengeHeight);
     [self.view addSubview:fengeImageView];
+}
+
+- (void)selectedFUChanged:(UISwitch *)sender{
+    
+    self.isuseFU = sender.isOn;
 }
 
 #pragma mark - button view layout
@@ -278,9 +300,12 @@ SDCycleScrollViewDelegate
 - (void)clickRecordingButton:(UIButton *)button {
     [self.clickFeedback impactOccurred];
     [self.clickFeedback prepare];
+    
     QNRecordingViewController *recordingController = [[QNRecordingViewController alloc] init];
+    recordingController.isuseFU = self.isuseFU;
     recordingController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:recordingController animated:YES completion:nil];
+    
 }
 
 // 转码编辑

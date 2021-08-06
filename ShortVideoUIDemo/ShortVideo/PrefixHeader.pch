@@ -45,7 +45,7 @@
 
 
 // MARK: - 相芯科技
-#import <libCNamaSDK/FURenderer.h>
+#import <FURenderKit/FURenderKit.h>
 
 // MARK: - Category
 #import "UIView+QNAlert.h"
