@@ -33,7 +33,7 @@
         [PLShortVideoKitEnv setLogLevel:(PLShortVideoLogLevelDebug)];
         
         NSLog(@"PLShortVideoKit version: %@", PLShortVideoRecorder.versionInfo);
-        NSLog(@"FaceUnity version: %@", [FURenderer getVersion]);
+        NSLog(@"FaceUnity version: %@", [FURenderKit getVersion]);
 #else
         [PLShortVideoKitEnv setLogLevel:(PLShortVideoLogLevelOff)];
      

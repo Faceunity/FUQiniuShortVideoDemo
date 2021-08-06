@@ -3,16 +3,15 @@ PODS:
   - JGProgressHUD (2.1)
   - Masonry (1.1.0)
   - MMMaterialDesignSpinner (0.2.5)
-  - Nama (7.2.0)
-  - PLShortVideoKit (3.2.0):
-    - PLShortVideoKit/ex-libMuseProcessor (= 3.2.0)
-    - PLShortVideoKit/libMuseProcessor (= 3.2.0)
-    - Qiniu (= 7.4.4)
-  - PLShortVideoKit/ex-libMuseProcessor (3.2.0):
-    - Qiniu (= 7.4.4)
-  - PLShortVideoKit/libMuseProcessor (3.2.0):
-    - Qiniu (= 7.4.4)
-  - Qiniu (7.4.4):
+  - PLShortVideoKit (3.2.4):
+    - PLShortVideoKit/ex-libMuseProcessor (= 3.2.4)
+    - PLShortVideoKit/libMuseProcessor (= 3.2.4)
+    - Qiniu (= 8.2.0)
+  - PLShortVideoKit/ex-libMuseProcessor (3.2.4):
+    - Qiniu (= 8.2.0)
+  - PLShortVideoKit/libMuseProcessor (3.2.4):
+    - Qiniu (= 8.2.0)
+  - Qiniu (8.2.0):
     - HappyDNS (~> 0.3.17)
   - SDCycleScrollView (1.80):
     - SDWebImage (>= 5.0.0)
@@ -25,8 +24,7 @@ DEPENDENCIES:
   - JGProgressHUD
   - Masonry
   - MMMaterialDesignSpinner
-  - Nama (~> 7.2.0)
-  - PLShortVideoKit
+  - PLShortVideoKit (~> 3.2.4)
   - SDCycleScrollView (>= 1.80)
   - SDWebImage
   - SVProgressHUD
@@ -37,7 +35,6 @@ SPEC REPOS:
     - JGProgressHUD
     - Masonry
     - MMMaterialDesignSpinner
-    - Nama
     - PLShortVideoKit
     - Qiniu
     - SDCycleScrollView
@@ -49,13 +46,12 @@ SPEC CHECKSUMS:
   JGProgressHUD: aa403e9a5b45cae98903c4600cccdd98c0c3ec90
   Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
   MMMaterialDesignSpinner: a548042720c2e5f04212048483085d7942ac3e81
-  Nama: 6513d06085933c8d13b1e6360f5c1ea6996f745b
-  PLShortVideoKit: 6ab8dca4aa80df0512daeb4f2096f053b941233f
-  Qiniu: 529d25de615c6ad1cb587f9d165a160d98e9fac9
+  PLShortVideoKit: 9ec2dd9129f1a0d7184ccc3eda6be1def58d35a9
+  Qiniu: 95e913e7ab91f6c4dff643164e8d66a7f79c5c5e
   SDCycleScrollView: b3c9a5ed840c771c4938978174c7c9d9feefeb96
   SDWebImage: 6ac2eb96571bff96ecde31a987172c5934a0eb7d
   SVProgressHUD: 1428aafac632c1f86f62aa4243ec12008d7a51d6
 
-PODFILE CHECKSUM: 5d78d9ddfcbbd2d85a59ecd4ad9173d359f8cf26
+PODFILE CHECKSUM: d99c9e8abd0fdcce78cc7d153c84688bfea6f691
 
 COCOAPODS: 1.9.3
