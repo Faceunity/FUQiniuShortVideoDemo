@@ -29,10 +29,8 @@
 #import "QNMusicPickerView.h"
 
 /**faceU */
-#import "FUManager.h"
-#import "FUTestRecorder.h"
-#import "FUAPIDemoBar.h"
-#import "UIViewController+FaceUnityUIExtension.h"
+#import "FUDemoManager.h"
+#import "FUBottomBar.h"
 
 @interface QNRecordingViewController ()
 <
@@ -136,13 +134,13 @@ QNTextPageControlDelegate
     [self setupUI];
     
     if (self.isuseFU) {
-        // 初始化 FaceUnity 美颜等参数
-        [self setupFaceUnity];
         
-    }else{
-        
-        // 测试时查看帧率性能
-        [[FUTestRecorder shareRecorder] setupRecord];
+        // FaceUnity UI
+        CGFloat safeAreaBottom = 0;
+        if (@available(iOS 11.0, *)) {
+            safeAreaBottom = [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom;
+        }
+        [FUDemoManager setupFaceUnityDemoInController:self originY:CGRectGetHeight(self.view.frame) - FUBottomBarHeight - safeAreaBottom - 88];
     }
 }
 
@@ -776,7 +774,7 @@ QNTextPageControlDelegate
         [classArray addObject:NSStringFromClass(view.class)];
         view = view.superview;
     }
-    if ([classArray containsObject:NSStringFromClass(FUAPIDemoBar.class)]) return NO;
+    if ([classArray containsObject:NSStringFromClass(FUBottomBar.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNFilterPickerView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNMusicPickerView.class)]) return NO;
     
@@ -1013,14 +1011,10 @@ QNTextPageControlDelegate
 
     if (!self.forbidFaceUnity) {
         
-        [[FUTestRecorder shareRecorder] processFrameWithLog];
-        
         if (self.isuseFU) {
             
             // FaceUnity 进行贴纸处理
             pixelBuffer = [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
-            // 未检测到人脸时,提示信息
-            [self checkAI];
         }
     }
     
