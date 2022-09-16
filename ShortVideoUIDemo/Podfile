@@ -1,5 +1,6 @@
 # Uncomment the next line to define a global platform for your project
  platform :ios, '9.0'
+source 'https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git'
 
 target 'ShortVideo' do
   # Uncomment the next line if you're using Swift or would like to use dynamic frameworks
@@ -14,5 +15,7 @@ target 'ShortVideo' do
   pod 'SDWebImage'
   pod 'SDCycleScrollView','>= 1.80'
   pod 'SVProgressHUD'
+  pod 'FURenderKit', '~> 8.3.0'
+  
   
 end
