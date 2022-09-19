@@ -30,7 +30,7 @@
 
 /**faceU */
 #import "FUDemoManager.h"
-#import "FUBottomBar.h"
+#import "FUSegmentBar.h"
 
 @interface QNRecordingViewController ()
 <
@@ -87,7 +87,7 @@ QNTextPageControlDelegate
 
 @property (nonatomic, strong) UILabel *faceUnityTipLabel;
 @property (nonatomic, assign) BOOL forbidFaceUnity;
-
+@property (nonatomic, strong) FUDemoManager *demoManager;
 
 @end
 
@@ -140,7 +140,7 @@ QNTextPageControlDelegate
         if (@available(iOS 11.0, *)) {
             safeAreaBottom = [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom;
         }
-        [FUDemoManager setupFaceUnityDemoInController:self originY:CGRectGetHeight(self.view.frame) - FUBottomBarHeight - safeAreaBottom - 88];
+        self.demoManager = [[FUDemoManager alloc] initWithTargetController:self originY:CGRectGetHeight(self.view.frame) - FUBottomBarHeight - safeAreaBottom -200];
     }
 }
 
@@ -774,7 +774,7 @@ QNTextPageControlDelegate
         [classArray addObject:NSStringFromClass(view.class)];
         view = view.superview;
     }
-    if ([classArray containsObject:NSStringFromClass(FUBottomBar.class)]) return NO;
+    if ([classArray containsObject:NSStringFromClass(FUSegmentBar.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNFilterPickerView.class)]) return NO;
     if ([classArray containsObject:NSStringFromClass(QNMusicPickerView.class)]) return NO;
     
