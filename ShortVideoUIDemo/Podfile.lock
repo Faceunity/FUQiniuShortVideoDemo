@@ -1,5 +1,5 @@
 PODS:
-  - FURenderKit (8.3.0)
+  - FURenderKit (8.7.0)
   - HappyDNS (0.3.17)
   - JGProgressHUD (2.1)
   - Masonry (1.1.0)
@@ -22,7 +22,7 @@ PODS:
   - SVProgressHUD (2.2.5)
 
 DEPENDENCIES:
-  - FURenderKit (~> 8.3.0)
+  - FURenderKit (~> 8.7.0)
   - JGProgressHUD
   - Masonry
   - MMMaterialDesignSpinner
@@ -45,7 +45,7 @@ SPEC REPOS:
     - SVProgressHUD
 
 SPEC CHECKSUMS:
-  FURenderKit: 3cd05abd03134d287a1d63cbaaeb95d304ba6bd6
+  FURenderKit: a73f9a86fc4b2963c6c29bd58f0b42a953cf9362
   HappyDNS: 848ef73e24f2b0e2752064223ce2dc0dd88900ea
   JGProgressHUD: aa403e9a5b45cae98903c4600cccdd98c0c3ec90
   Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
@@ -56,6 +56,6 @@ SPEC CHECKSUMS:
   SDWebImage: 6ac2eb96571bff96ecde31a987172c5934a0eb7d
   SVProgressHUD: 1428aafac632c1f86f62aa4243ec12008d7a51d6
 
-PODFILE CHECKSUM: f5448df17d5f8459f1f7bb7cec5a32a6b31d9b61
+PODFILE CHECKSUM: 3d044f1acc4f598263f6c805da628f8f2ca92404
 
 COCOAPODS: 1.11.3

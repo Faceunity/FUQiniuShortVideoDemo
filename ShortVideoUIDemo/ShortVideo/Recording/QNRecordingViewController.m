@@ -87,7 +87,6 @@ QNTextPageControlDelegate
 
 @property (nonatomic, strong) UILabel *faceUnityTipLabel;
 @property (nonatomic, assign) BOOL forbidFaceUnity;
-@property (nonatomic, strong) FUDemoManager *demoManager;
 
 @end
 
@@ -97,7 +96,7 @@ QNTextPageControlDelegate
     
     if (self.isuseFU) {
        
-        [[FUManager shareManager] destoryItems];
+        [FUDemoManager destory];
     }
 
     NSLog(@"dealloc: %@", [[self class] description]);
@@ -136,11 +135,8 @@ QNTextPageControlDelegate
     if (self.isuseFU) {
         
         // FaceUnity UI
-        CGFloat safeAreaBottom = 0;
-        if (@available(iOS 11.0, *)) {
-            safeAreaBottom = [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom;
-        }
-        self.demoManager = [[FUDemoManager alloc] initWithTargetController:self originY:CGRectGetHeight(self.view.frame) - FUBottomBarHeight - safeAreaBottom -200];
+        [FUDemoManager setupFUSDK];
+        [[FUDemoManager shared] addDemoViewToView:self.view originY:CGRectGetHeight(self.view.frame) - FUBottomBarHeight - FUSafaAreaBottomInsets() -200];
     }
 }
 
@@ -351,7 +347,7 @@ QNTextPageControlDelegate
     
     self.rateIndicatorView.frame = CGRectMake(300.0 / 5 * 2, 0, 300.0 / 5, 36);
     [self setupRecorder];
-    [self setupFilter];
+//    [self setupFilter];
     
     #ifdef DEBUG
         // 这个 debug 版本对比效果添加的 button
@@ -582,7 +578,7 @@ QNTextPageControlDelegate
             
             if (weakSelf.isuseFU) {
                 
-                [[FUManager shareManager] onCameraChange];
+                [FUDemoManager resetTrackedResult];
             }
         });
     }];
@@ -999,22 +995,30 @@ QNTextPageControlDelegate
 
 
 - (CVPixelBufferRef)shortVideoRecorder:(PLShortVideoRecorder *)recorder cameraSourceDidGetPixelBuffer:(CVPixelBufferRef)pixelBuffer timingInfo:(CMSampleTimingInfo)timingInfo{
-    
-    // 进行滤镜处理
-    if (self.isPanning) {
-        // 正在滤镜切换过程中，使用 processPixelBuffer:leftPercent:leftFilter:rightFilter 做滤镜切换动画
-        pixelBuffer = [self.filterGroup processPixelBuffer:pixelBuffer leftPercent:self.leftPercent leftFilter:self.leftFilter rightFilter:self.rightFilter];
-    } else {
-        // 正常滤镜处理
-        pixelBuffer = [self.filterGroup.currentFilter process:pixelBuffer];
-    }
-
     if (!self.forbidFaceUnity) {
         
         if (self.isuseFU) {
             
-            // FaceUnity 进行贴纸处理
-            pixelBuffer = [[FUManager shareManager] renderItemsToPixelBuffer:pixelBuffer];
+            if(fuIsLibraryInit()){
+                // FaceUnity 进行贴纸处理
+                [[FUDemoManager shared] checkAITrackedResult];
+                if ([FUDemoManager shared].shouldRender) {
+                    [[FUTestRecorder shareRecorder] processFrameWithLog];
+                    [FUDemoManager updateBeautyBlurEffect];
+                    FURenderInput *input = [[FURenderInput alloc] init];
+                    input.renderConfig.imageOrientation = FUImageOrientationUP;
+                    input.pixelBuffer = pixelBuffer;
+                    //开启重力感应，内部会自动计算正确方向，设置fuSetDefaultRotationMode，无须外面设置
+                    input.renderConfig.gravityEnable = YES;
+                    FURenderOutput *output = [[FURenderKit shareRenderKit] renderWithInput:input];
+                    if(output){
+                        return output.pixelBuffer;
+                    }else{
+                        return pixelBuffer;
+                    }
+                }
+            }
+            
         }
     }
     
