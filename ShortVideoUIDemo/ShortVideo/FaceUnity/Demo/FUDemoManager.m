@@ -46,8 +46,6 @@
 @property (nonatomic, weak) UIView *targetView;
 @property (nonatomic, assign) CGFloat demoOriginY;
 
-@property (nonatomic, assign) BOOL shouldRender;
-
 @end
 
 @implementation FUDemoManager
@@ -88,10 +86,10 @@ static dispatch_once_t onceToken;
     [FUAIKit shareKit].maxTrackFaces = 4;
     
     // 设置人脸算法质量
-    [FUAIKit shareKit].faceProcessorFaceLandmarkQuality = [FURenderKit devicePerformanceLevel] == FUDevicePerformanceLevelHigh ? FUFaceProcessorFaceLandmarkQualityHigh : FUFaceProcessorFaceLandmarkQualityMedium;
+    [FUAIKit shareKit].faceProcessorFaceLandmarkQuality = [FURenderKit devicePerformanceLevel] >= FUDevicePerformanceLevelHigh ? FUFaceProcessorFaceLandmarkQualityHigh : FUFaceProcessorFaceLandmarkQualityMedium;
     
     // 设置小脸检测是否打开
-    [FUAIKit shareKit].faceProcessorDetectSmallFace = [FURenderKit devicePerformanceLevel] == FUDevicePerformanceLevelHigh;
+    [FUAIKit shareKit].faceProcessorDetectSmallFace = [FURenderKit devicePerformanceLevel] >= FUDevicePerformanceLevelHigh;
     
     // 性能测试初始化
     [[FUTestRecorder shareRecorder] setupRecord];
@@ -316,16 +314,16 @@ static dispatch_once_t onceToken;
     return _trackTipLabel;
 }
 
-- (BOOL)shouldRender {
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-    __block BOOL should = YES;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        should = self.renderSwitch.isOn;
-        dispatch_semaphore_signal(semaphore);
-    });
-    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    return should;
-}
+//- (BOOL)shouldRender {
+//    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+//    __block BOOL should = YES;
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        should = self.renderSwitch.isOn;
+//        dispatch_semaphore_signal(semaphore);
+//    });
+//    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//    return should;
+//}
 
 #pragma mark - Class methods
 
@@ -343,7 +341,7 @@ static dispatch_once_t onceToken;
     if (![FURenderKit shareRenderKit].beauty || ![FURenderKit shareRenderKit].beauty.enable) {
         return;
     }
-    if ([FURenderKit devicePerformanceLevel] == FUDevicePerformanceLevelHigh) {
+    if ([FURenderKit devicePerformanceLevel] >= FUDevicePerformanceLevelHigh) {
         // 根据人脸置信度设置不同磨皮效果
         CGFloat score = [FUAIKit fuFaceProcessorGetConfidenceScore:0];
         if (score > 0.95) {
@@ -370,7 +368,7 @@ static dispatch_once_t onceToken;
     // 默认精细变形
     beauty.faceShape = 4;
     // 高性能设备设置去黑眼圈、去法令纹、大眼、嘴型最新效果
-    if ([FURenderKit devicePerformanceLevel] == FUDevicePerformanceLevelHigh) {
+    if ([FURenderKit devicePerformanceLevel] >= FUDevicePerformanceLevelHigh) {
         [beauty addPropertyMode:FUBeautyPropertyMode2 forKey:FUModeKeyRemovePouchStrength];
         [beauty addPropertyMode:FUBeautyPropertyMode2 forKey:FUModeKeyRemoveNasolabialFoldsStrength];
         [beauty addPropertyMode:FUBeautyPropertyMode3 forKey:FUModeKeyEyeEnlarging];

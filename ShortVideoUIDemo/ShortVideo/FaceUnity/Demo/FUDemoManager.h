@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface FUDemoManager : NSObject
 
 /// 开关状态
-@property (nonatomic, assign, readonly) BOOL shouldRender;
+@property (nonatomic, assign) BOOL shouldRender;
 
 + (instancetype)shared;
 
